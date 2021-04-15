@@ -1,1 +1,1 @@
-src/startup/squish.run filter=lfs diff=lfs merge=lfs -text
+*.run filter=lfs diff=lfs merge=lfs -text
