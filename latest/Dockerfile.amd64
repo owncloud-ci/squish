@@ -40,6 +40,9 @@ RUN apt-get update && apt-get install -y \
     && apt-get -y autoremove \
     && rm -rf /var/lib/apt/lists/*
 
+### download squish
+RUN wget https://packages.froglogic.com/release/ff4ktzb2U77ts0EaseqFMw/1618552975/squish/6.7/squish-6.7.0-qt512x-linux64.run -O /opt/squish.run && chmod +x /opt/squish.run
+
 ### install current 'jq' explicitly
 RUN \
 { \
@@ -184,7 +187,6 @@ RUN \
         "${STARTUPDIR}/generate_container_user.sh" \
         "${STARTUPDIR}/vnc_startup.sh" \
         "${STARTUPDIR}/entrypoint.sh" \
-        "${STARTUPDIR}/squish.run" \
     && ${ARG_SUPPORT_USER_GROUP_OVERRIDE/*/chmod a+w /etc/passwd /etc/group} \
     && gtk-update-icon-cache -f /usr/share/icons/hicolor
 
