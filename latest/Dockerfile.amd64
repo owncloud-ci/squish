@@ -1,6 +1,9 @@
 ARG BASETAG=20.04
 
 FROM ubuntu:${BASETAG} as stage-ubuntu
+# for squish download
+ARG S3SECRET
+ARG SQUISHVERSION
 
 ARG DEBIAN_FRONTEND=noninteractive
 ENV TZ=Europe/Berlin
@@ -41,7 +44,10 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 ### download squish
-RUN wget https://packages.froglogic.com/release/ff4ktzb2U77ts0EaseqFMw/1618552975/squish/6.7/squish-6.7.0-qt512x-linux64.run -O /opt/squish.run && chmod +x /opt/squish.run
+RUN wget https://dl.min.io/client/mc/release/linux-amd64/mc -O /opt/mc && \
+    chmod +x /opt/mc && \
+    /opt/mc alias set minio https://minio.owncloud.com packages ${S3SECRET} && \
+    /opt/mc cp --no-color minio/packages/squish/squish-${SQUISHVERSION}.run /opt/squish.run
 
 ### install current 'jq' explicitly
 RUN \
@@ -187,6 +193,7 @@ RUN \
         "${STARTUPDIR}/generate_container_user.sh" \
         "${STARTUPDIR}/vnc_startup.sh" \
         "${STARTUPDIR}/entrypoint.sh" \
+        "/opt/squish.run" \
     && ${ARG_SUPPORT_USER_GROUP_OVERRIDE/*/chmod a+w /etc/passwd /etc/group} \
     && gtk-update-icon-cache -f /usr/share/icons/hicolor
 

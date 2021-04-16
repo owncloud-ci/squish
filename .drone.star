@@ -11,7 +11,11 @@ def main(ctx):
     'version': None,
     'arch': None,
     'trigger': [],
-    'repo': ctx.repo.name
+    'repo': ctx.repo.name,
+    'squishversion': '6.7.0-qt512x-linux64',
+    's3secret': {
+       'from_secret': 'squish_download_s3secret',
+    },
   }
 
   stages = []
@@ -187,12 +191,21 @@ def dryrun(config):
   return [{
     'name': 'dryrun',
     'image': 'plugins/docker',
+    'environment':{
+      'S3SECRET': config['s3secret']
+    },
     'settings': {
       'dry_run': True,
       'tags': config['tag'],
       'dockerfile': '%s/Dockerfile.%s' % (config['path'], config['arch']),
       'repo': 'owncloudci/%s' % config['repo'],
       'context': config['path'],
+      'build_args': [
+        'SQUISHVERSION=%s' % config['squishversion'],
+      ],
+      'build_args_from_env': [
+        'S3SECRET'
+      ]
     },
     'when': {
       'ref': [
@@ -205,6 +218,9 @@ def publish(config):
   return [{
     'name': 'publish',
     'image': 'plugins/docker',
+    'environment':{
+      'S3SECRET': config['s3secret']
+    },
     'settings': {
       'username': {
         'from_secret': 'public_username',
@@ -217,6 +233,12 @@ def publish(config):
       'repo': 'owncloudci/%s' % config['repo'],
       'context': config['path'],
       'pull_image': False,
+      'build_args': [
+        'SQUISHVERSION=%s' % config['squishversion'],
+      ],
+      'build_args_from_env': [
+        'S3SECRET'
+      ]
     },
     'when': {
       'ref': [
