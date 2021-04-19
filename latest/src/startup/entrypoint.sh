@@ -13,4 +13,4 @@ cp /dockerstartup/server.ini ${HOME}/.squish/ver1/
 
 /home/headless/squish/bin/squishserver &
 
-~/squish/bin/squishrunner --testsuite ${CLIENT_REPO}/test/gui/
+~/squish/bin/squishrunner --exitCodeOnFail 1 --testsuite ${CLIENT_REPO}/test/gui/
