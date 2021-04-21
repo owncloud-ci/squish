@@ -13,4 +13,4 @@ cp ${SERVER_INI} ${HOME}/.squish/ver1/
 
 /home/headless/squish/bin/squishserver &
 
-~/squish/bin/squishrunner --testsuite ${CLIENT_REPO}/test/gui/ --exitCodeOnFail 1
+~/squish/bin/squishrunner --testsuite ${CLIENT_REPO}/test/gui/ ${SQUISH_PARAMETERS} --exitCodeOnFail 1
