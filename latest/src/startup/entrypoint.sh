@@ -9,8 +9,8 @@ cp ${HOME}/squish/etc/paths.ini ${HOME}/squish/etc/paths.ini-backup
 cp /dockerstartup/paths.ini ${HOME}/squish/etc/
 
 mkdir -p ${HOME}/.squish/ver1/
-cp /dockerstartup/server.ini ${HOME}/.squish/ver1/
+cp ${SERVER_INI} ${HOME}/.squish/ver1/
 
 /home/headless/squish/bin/squishserver &
 
-~/squish/bin/squishrunner --exitCodeOnFail 1 --testsuite ${CLIENT_REPO}/test/gui/
+~/squish/bin/squishrunner --testsuite ${CLIENT_REPO}/test/gui/ ${SQUISH_PARAMETERS} --exitCodeOnFail 1
