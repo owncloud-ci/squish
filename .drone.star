@@ -13,6 +13,7 @@ def main(ctx):
     'trigger': [],
     'repo': ctx.repo.name,
     'squishversion': '6.7.0-qt512x-linux64',
+    'description': 'Squish for ownCloud CI',
     's3secret': {
        'from_secret': 'squish_download_s3secret',
     },
@@ -59,6 +60,7 @@ def main(ctx):
     stages.extend(inner)
 
   after = [
+    documentation(config),
     notification(config),
   ]
 
@@ -123,6 +125,56 @@ def manifest(config):
       ],
     },
   }
+
+
+def documentation(config):
+  return {
+    'kind': 'pipeline',
+    'type': 'docker',
+    'name': 'documentation',
+    'platform': {
+      'os': 'linux',
+      'arch': 'amd64',
+    },
+    'steps': [
+      {
+        'name': 'link-check',
+        'image': 'ghcr.io/tcort/markdown-link-check:stable',
+        'commands': [
+          '/src/markdown-link-check README.md',
+        ],
+      },
+      {
+        'name': 'publish',
+        'image': 'chko/docker-pushrm:1',
+        'environment': {
+          'DOCKER_PASS': {
+            'from_secret': 'public_password',
+          },
+          'DOCKER_USER': {
+            'from_secret': 'public_username',
+          },
+          'PUSHRM_FILE': 'README.md',
+          'PUSHRM_TARGET': 'owncloudci/${DRONE_REPO_NAME}',
+          'PUSHRM_SHORT': config['description'],
+        },
+        'when': {
+          'ref': [
+            'refs/heads/main',
+          ],
+        },
+      },
+    ],
+    'depends_on': [],
+    'trigger': {
+      'ref': [
+        'refs/heads/main',
+        'refs/tags/**',
+        'refs/pull/**',
+      ],
+    },
+  }
+
 
 def notification(config):
   steps = [{
@@ -247,6 +299,8 @@ def publish(config):
       ],
     },
   }]
+
+
 
 def steps(config):
   return dryrun(config) + publish(config)
