@@ -114,6 +114,7 @@ def manifest(config):
           },
           'spec': '%s/manifest.tmpl' % config['path'],
           'ignore_missing': 'true',
+          'tags': '%s' % config['squishversion'],
         },
       },
     ],
