@@ -49,27 +49,6 @@ RUN wget https://dl.min.io/client/mc/release/linux-amd64/mc -O /opt/mc && \
     /opt/mc alias set minio https://minio.owncloud.com packages ${S3SECRET} && \
     /opt/mc cp --no-color minio/packages/squish/squish-${SQUISHVERSION}.run /opt/squish.run
 
-### install current 'jq' explicitly
-RUN \
-{ \
-    JQ_VERSION="1.6" ; \
-    JQ_DISTRO="jq-linux64" ; \
-    cd /tmp ; \
-    wget -q "https://github.com/stedolan/jq/releases/download/jq-${JQ_VERSION}/${JQ_DISTRO}" ; \
-    wget -q "https://raw.githubusercontent.com/stedolan/jq/master/sig/v${JQ_VERSION}/sha256sum.txt" ; \
-    test=$(grep "${JQ_DISTRO}" sha256sum.txt | sha256sum -c | grep -c "${JQ_DISTRO}: OK") ; \
-    if [[ $test -ne 1 ]] ; then \
-        echo "FAILURE: ${JQ_DISTRO} failed checksum test" ; \
-        exit 1 ; \
-    else \
-        rm sha256sum.txt ; \
-        chown root "${JQ_DISTRO}" ; \
-        chmod +x "${JQ_DISTRO}" ; \
-        mv -f "${JQ_DISTRO}" /usr/bin/jq ; \
-    fi ; \
-    cd - ; \
-}
-
 ### next ENTRYPOINT command supports development and should be overriden or disabled
 ### it allows running detached containers created from intermediate images, for example:
 ### docker build --target stage-vnc -t dev/ubuntu-vnc-xfce:stage-vnc .
