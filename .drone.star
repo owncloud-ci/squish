@@ -8,8 +8,8 @@ def main(ctx):
   ]
 
   config = {
-    'version': None,
-    'arch': None,
+    'version': 'latest',
+    'arch': 'amd64',
     'trigger': [],
     'repo': ctx.repo.name,
     'squishversion': '6.7.0-qt512x-linux64',
@@ -19,8 +19,6 @@ def main(ctx):
     },
   }
 
-  stages = []
-
   for version in versions:
     config['version'] = version
 
@@ -29,35 +27,7 @@ def main(ctx):
     else:
       config['path'] = 'v%s' % config['version']
 
-    m = manifest(config)
-    inner = []
-
-    for arch in arches:
-      config['arch'] = arch
-
-      if config['version'] == 'latest':
-        config['tag'] = arch
-      else:
-        config['tag'] = '%s-%s' % (config['version'], arch)
-
-      if config['arch'] == 'amd64':
-        config['platform'] = 'amd64'
-
-      if config['arch'] == 'arm64v8':
-        config['platform'] = 'arm64'
-
-      if config['arch'] == 'arm32v7':
-        config['platform'] = 'arm'
-
-      config['internal'] = '%s-%s' % (ctx.build.commit, config['tag'])
-
-      d = docker(config)
-      m['depends_on'].append(d['name'])
-
-      inner.append(d)
-
-    inner.append(m)
-    stages.extend(inner)
+  stages = [ docker(config) ]
 
   after = [
     documentation(config),
@@ -77,7 +47,7 @@ def docker(config):
     'name': '%s-%s' % (config['arch'], config['path']),
     'platform': {
       'os': 'linux',
-      'arch': config['platform'],
+      'arch': config['arch'],
     },
     'steps': steps(config),
     'image_pull_secrets': [
@@ -91,42 +61,6 @@ def docker(config):
       ],
     },
   }
-
-def manifest(config):
-  return {
-    'kind': 'pipeline',
-    'type': 'docker',
-    'name': 'manifest-%s' % config['path'],
-    'platform': {
-      'os': 'linux',
-      'arch': 'amd64',
-    },
-    'steps': [
-      {
-        'name': 'manifest',
-        'image': 'plugins/manifest',
-        'settings': {
-          'username': {
-            'from_secret': 'public_username',
-          },
-          'password': {
-            'from_secret': 'public_password',
-          },
-          'spec': '%s/manifest.tmpl' % config['path'],
-          'ignore_missing': 'true',
-          'tags': '%s' % config['squishversion'],
-        },
-      },
-    ],
-    'depends_on': [],
-    'trigger': {
-      'ref': [
-        'refs/heads/master',
-        'refs/tags/**',
-      ],
-    },
-  }
-
 
 def documentation(config):
   return {
@@ -249,7 +183,10 @@ def dryrun(config):
     },
     'settings': {
       'dry_run': True,
-      'tags': config['tag'],
+      'tags': [
+        config['squishversion'],
+        config['version'],
+      ],
       'dockerfile': '%s/Dockerfile.%s' % (config['path'], config['arch']),
       'repo': 'owncloudci/%s' % config['repo'],
       'context': config['path'],
@@ -258,7 +195,7 @@ def dryrun(config):
       ],
       'build_args_from_env': [
         'S3SECRET'
-      ]
+      ],
     },
     'when': {
       'ref': [
@@ -281,7 +218,10 @@ def publish(config):
       'password': {
         'from_secret': 'public_password',
       },
-      'tags': config['tag'],
+      'tags': [
+        config['squishversion'],
+        config['version'],
+      ],
       'dockerfile': '%s/Dockerfile.%s' % (config['path'], config['arch']),
       'repo': 'owncloudci/%s' % config['repo'],
       'context': config['path'],
@@ -291,7 +231,7 @@ def publish(config):
       ],
       'build_args_from_env': [
         'S3SECRET'
-      ]
+      ],
     },
     'when': {
       'ref': [
