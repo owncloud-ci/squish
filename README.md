@@ -24,6 +24,10 @@ This container is not maintained nor used by froglogic, or the Qt company. It's 
 | SERVER_INI                 | full path of the `server.ini` file to be used |
 | SQUISH_PARAMETERS          | further [squishrunner cli parameters](https://doc.froglogic.com/squish/latest/rg-cmdline.html#rg-squishrunner-cli) |
 
+## Update squish
+1. upload new version to https://minio.owncloud.com/minio/packages/squish/
+2. set `squishversion` to match the uploaded filename. E.g. if the filename is `squish-6.7.0-qt512x-linux64.run` the version in drone must be set to `6.7.0-qt512x-linux64`
+
 ## Acknowledgment
 
 This project is mostly a fork of https://github.com/accetto/xubuntu-vnc-novnc with some tweaks for the ownCloud use case.
