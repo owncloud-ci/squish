@@ -12,7 +12,7 @@ def main(ctx):
     'arch': 'amd64',
     'trigger': [],
     'repo': ctx.repo.name,
-    'squishversion': '6.7.0-qt512x-linux64',
+    'squishversion': '6.7-20210421-1504-qt512x-linux64',
     'description': 'Squish for ownCloud CI',
     's3secret': {
        'from_secret': 'squish_download_s3secret',
