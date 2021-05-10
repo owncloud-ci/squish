@@ -51,7 +51,7 @@ do
   fi
   ~/squish/bin/squishrunner --testsuite ${CLIENT_REPO}/test/gui/ ${SQUISH_PARAMETERS} --exitCodeOnFail 1
   result=$?
-  if [[ $result -eq LICENSE_ERROR_RESULT_CODE ]]
+  if [[ $result -eq $LICENSE_ERROR_RESULT_CODE ]]
   then
     echo "sleeping waiting for license server"
     sleep $((1 + $RANDOM % 30))
