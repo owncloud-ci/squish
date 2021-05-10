@@ -38,8 +38,7 @@ cp ${SERVER_INI} ${HOME}/.squish/ver1/server.ini
 
 /home/headless/squish/bin/squishserver &
 
-# squishrunner seems to wait itself for a license, but sometimes fails with error 37
-# error code that is returned by the squish runner if there is an issue with the license
+# squishrunner waits itself for a license to become available, but fails with error 37 if it cannot connect to the license server
 LICENSE_ERROR_RESULT_CODE=37
 result=LICENSE_ERROR_RESULT_CODE
 echo "starting tests"
@@ -47,14 +46,14 @@ while true
 do
   if [[ $(date -u +%s) -gt $endtime ]]
   then
-    echo "timeout waiting for available license"
+    echo "timeout waiting for license server"
     exit 1
   fi
   ~/squish/bin/squishrunner --testsuite ${CLIENT_REPO}/test/gui/ ${SQUISH_PARAMETERS} --exitCodeOnFail 1
   result=$?
   if [[ $result -eq LICENSE_ERROR_RESULT_CODE ]]
   then
-    echo "sleeping waiting for available license"
+    echo "sleeping waiting for license server"
     sleep $((1 + $RANDOM % 30))
   else
     exit $result
