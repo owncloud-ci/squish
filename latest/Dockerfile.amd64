@@ -37,6 +37,7 @@ RUN apt-get update && apt-get install -y \
         libcmocka-dev \
         qt5-default \
         qttools5-dev-tools \
+        libcloudproviders-dev \
         qt5keychain-dev \
         python-is-python3 \
     && apt-get -y autoremove \
