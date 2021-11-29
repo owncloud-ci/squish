@@ -74,7 +74,7 @@ def documentation(config):
     'steps': [
       {
         'name': 'link-check',
-        'image': 'ghcr.io/tcort/markdown-link-check:stable',
+        'image': 'ghcr.io/tcort/markdown-link-check:3.8.7',
         'commands': [
           '/src/markdown-link-check README.md',
         ],
