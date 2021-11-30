@@ -36,6 +36,12 @@ cp /dockerstartup/paths.ini ${HOME}/squish/etc/
 mkdir -p ${HOME}/.squish/ver1/
 cp ${SERVER_INI} ${HOME}/.squish/ver1/server.ini
 
+# Set allowed core dump size to an unlimited value, needed for backtracing
+ulimit -c unlimited
+
+# Turn off the Squish crash handler by setting this environment variable
+export SQUISH_NO_CRASHHANDLER=1
+
 /home/headless/squish/bin/squishserver &
 
 # squishrunner waits itself for a license to become available, but fails with error 37 if it cannot connect to the license server
