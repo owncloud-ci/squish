@@ -16,35 +16,62 @@ LABEL description="minimal Ubuntu with xfce4, VNC & squish to run GUI tests of t
  It's not intended for public use but purely for CI runs."
 
 ### 'apt-get clean' runs automatically
-RUN echo apt-get update && apt-get install -y \
-        inetutils-ping \
-        lsb-release \
-        net-tools \
-        sudo \
-        unzip \
-        vim \
-        zip \
-        curl \
-        gdebi-core \
-        git \
-        wget \
-        nano \
-        python3-gi \
-        python3-nautilus \
-        zlib1g-dev \
-        libsqlite3-dev \
-        libssl-dev \
-        libcmocka-dev \
-        qtbase5-dev \
-        qtchooser \
-        qt5-qmake \
-        qtbase5-dev-tools \
-        qttools5-dev-tools \
-        libcloudproviders-dev \
-        qt5keychain-dev \
-        python-is-python3 \
+RUN apt-get update && apt-get install -y \
+    inetutils-ping \
+    lsb-release \
+    net-tools \
+    sudo \
+    unzip \
+    vim \
+    zip \
+    curl \
+    gdebi-core \
+    git \
+    wget \
+    nano \
+    python3-gi \
+    python3-nautilus \
+    zlib1g-dev \
+    libsqlite3-dev \
+    libssl-dev \
+    libcmocka-dev \
+    qtbase5-dev \
+    qtchooser \
+    qt5-qmake \
+    qtbase5-dev-tools \
+    qttools5-dev-tools \
+    libcloudproviders-dev \
+    qt5keychain-dev \
+    python-is-python3 \
+    build-essential \
+    libssl-dev \
+    zlib1g-dev \
+    libncurses5-dev \
+    libncursesw5-dev \
+    libreadline-dev \
+    libsqlite3-dev \
+    libgdbm-dev \
+    libdb5.3-dev \
+    libbz2-dev \
+    libexpat1-dev \
+    liblzma-dev \
+    libffi-dev \
+    libcairo2-dev \
+    libgirepository1.0-dev \
     && apt-get -y autoremove \
     && rm -rf /var/lib/apt/lists/*
+
+### install Python 3.8 including needed modules
+RUN mkdir /python && \
+    cd /python && \
+    wget -O-  https://www.python.org/ftp/python/3.8.9/Python-3.8.9.tgz | tar xz --strip 1 -C . && \
+    ./configure --enable-optimizations --enable-shared && \
+    make && \
+    sudo make install && \
+    cp /python/libpython* /usr/lib && \
+    python3.8 -m pip install requests && \
+    python3.8 -m pip install pycairo && \
+    python3.8 -m pip install PyGObject
 
 ### download squish
 RUN wget https://dl.min.io/client/mc/release/linux-amd64/mc -O /opt/mc && \
