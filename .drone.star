@@ -1,6 +1,7 @@
 def main(ctx):
   versions = [
     'latest',
+    'qt512'
   ]
 
   arches = [
@@ -12,22 +13,26 @@ def main(ctx):
     'arch': 'amd64',
     'trigger': [],
     'repo': ctx.repo.name,
-    'squishversion': '6.7-20210421-1504-qt512x-linux64',
+    'squishversion': {
+        'latest': '6.7.2-qt515x-linux64',
+        'qt512': '6.7-20210421-1504-qt512x-linux64',
+    },
     'description': 'Squish for ownCloud CI',
     's3secret': {
        'from_secret': 'squish_download_s3secret',
     },
   }
 
+  stages = []
   for version in versions:
     config['version'] = version
 
     if config['version'] == 'latest':
       config['path'] = 'latest'
     else:
-      config['path'] = 'v%s' % config['version']
+      config['path'] = '%s' % config['version']
 
-  stages = [ docker(config) ]
+    stages.append(docker(config))
 
   after = [
     documentation(config),
@@ -184,14 +189,14 @@ def dryrun(config):
     'settings': {
       'dry_run': True,
       'tags': [
-        config['squishversion'],
+        config['squishversion'][config['version']],
         config['version'],
       ],
       'dockerfile': '%s/Dockerfile.%s' % (config['path'], config['arch']),
       'repo': 'owncloudci/%s' % config['repo'],
       'context': config['path'],
       'build_args': [
-        'SQUISHVERSION=%s' % config['squishversion'],
+        'SQUISHVERSION=%s' % config['squishversion'][config['version']],
       ],
       'build_args_from_env': [
         'S3SECRET'
@@ -219,7 +224,7 @@ def publish(config):
         'from_secret': 'public_password',
       },
       'tags': [
-        config['squishversion'],
+        config['squishversion'][config['version']],
         config['version'],
       ],
       'dockerfile': '%s/Dockerfile.%s' % (config['path'], config['arch']),
@@ -227,7 +232,7 @@ def publish(config):
       'context': config['path'],
       'pull_image': False,
       'build_args': [
-        'SQUISHVERSION=%s' % config['squishversion'],
+        'SQUISHVERSION=%s' % config['squishversion'][config['version']],
       ],
       'build_args_from_env': [
         'S3SECRET'

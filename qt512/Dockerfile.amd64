@@ -1,4 +1,4 @@
-ARG BASETAG=21.04
+ARG BASETAG=20.04
 
 FROM ubuntu:${BASETAG} as stage-ubuntu
 # for squish download
@@ -17,61 +17,31 @@ LABEL description="minimal Ubuntu with xfce4, VNC & squish to run GUI tests of t
 
 ### 'apt-get clean' runs automatically
 RUN apt-get update && apt-get install -y \
-    inetutils-ping \
-    lsb-release \
-    net-tools \
-    sudo \
-    unzip \
-    vim \
-    zip \
-    curl \
-    gdebi-core \
-    git \
-    wget \
-    nano \
-    python3-gi \
-    python3-nautilus \
-    zlib1g-dev \
-    libsqlite3-dev \
-    libssl-dev \
-    libcmocka-dev \
-    qtbase5-dev \
-    qtchooser \
-    qt5-qmake \
-    qtbase5-dev-tools \
-    qttools5-dev-tools \
-    libcloudproviders-dev \
-    qt5keychain-dev \
-    python-is-python3 \
-    build-essential \
-    libssl-dev \
-    zlib1g-dev \
-    libncurses5-dev \
-    libncursesw5-dev \
-    libreadline-dev \
-    libsqlite3-dev \
-    libgdbm-dev \
-    libdb5.3-dev \
-    libbz2-dev \
-    libexpat1-dev \
-    liblzma-dev \
-    libffi-dev \
-    libcairo2-dev \
-    libgirepository1.0-dev \
+        inetutils-ping \
+        lsb-release \
+        net-tools \
+        sudo \
+        unzip \
+        vim \
+        zip \
+        curl \
+        gdebi-core \
+        git \
+        wget \
+        nano \
+        python-gi \
+        python-nautilus \
+        zlib1g-dev \
+        libsqlite3-dev \
+        libssl-dev \
+        libcmocka-dev \
+        qt5-default \
+        qttools5-dev-tools \
+        libcloudproviders-dev \
+        qt5keychain-dev \
+        python-is-python3 \
     && apt-get -y autoremove \
     && rm -rf /var/lib/apt/lists/*
-
-### install Python 3.8 including needed modules
-RUN mkdir /python && \
-    cd /python && \
-    wget -O-  https://www.python.org/ftp/python/3.8.9/Python-3.8.9.tgz | tar xz --strip 1 -C . && \
-    ./configure --enable-optimizations --enable-shared && \
-    make && \
-    sudo make install && \
-    cp /python/libpython* /usr/lib && \
-    python3.8 -m pip install requests && \
-    python3.8 -m pip install pycairo && \
-    python3.8 -m pip install PyGObject
 
 ### download squish
 RUN wget https://dl.min.io/client/mc/release/linux-amd64/mc -O /opt/mc && \
@@ -121,12 +91,12 @@ FROM stage-vnc as stage-novnc
 ENV NO_VNC_HOME=/usr/share/usr/local/share/noVNCdim
 
 ### 'apt-get clean' runs automatically
-### 'python3-numpy' used for websockify/novnc
+### 'python-numpy' used for websockify/novnc
 ### ## Use the older version of websockify to prevent hanging connections on offline containers,
 ### see https://github.com/ConSol/docker-headless-vnc-container/issues/50
 ### installed into '/usr/share/usr/local/share/noVNCdim'
 RUN apt-get update && apt-get install -y \
-        python3-numpy \
+        python-numpy \
     && mkdir -p ${NO_VNC_HOME}/utils/websockify \
     && wget -qO- https://github.com/novnc/noVNC/archive/v1.2.0.tar.gz | tar xz --strip 1 -C ${NO_VNC_HOME} \
     && wget -qO- https://github.com/novnc/websockify/archive/v0.9.0.tar.gz | tar xz --strip 1 -C ${NO_VNC_HOME}/utils/websockify \
