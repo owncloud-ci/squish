@@ -14,7 +14,7 @@ def main(ctx):
     'trigger': [],
     'repo': ctx.repo.name,
     'squishversion': {
-        'latest': '6.7.2-qt515x-linux64',
+        'latest': '6.7-20220106-1008-qt515x-linux64',
         'qt512': '6.7-20210421-1504-qt512x-linux64',
     },
     'description': 'Squish for ownCloud CI',
