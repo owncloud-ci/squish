@@ -15,8 +15,10 @@ LABEL description="minimal Ubuntu with xfce4, VNC & squish to run GUI tests of t
  This container is not maintained nor used by froglogic or the Qt company. \
  It's not intended for public use but purely for CI runs."
 
+RUN sed -i'' 's/archive\.ubuntu\.com/us\.archive\.ubuntu\.com/' /etc/apt/sources.list
+
 ### 'apt-get clean' runs automatically
-RUN apt-get update && apt-get install -y \
+RUN apt-get update --fix-missing && apt-get install -y apt-transport-https \
         inetutils-ping \
         lsb-release \
         net-tools \
@@ -43,11 +45,34 @@ RUN apt-get update && apt-get install -y \
     && apt-get -y autoremove \
     && rm -rf /var/lib/apt/lists/*
 
+# Install and start apport
+RUN ulimit -c unlimited
+
+# This did not work
+#RUN apt-get update && apt-get install -y apport-symptoms
+
+# RUN apt-get install abrt && systemctl enable abrt-oops.service
+
+# RUN apt-get install apport
+
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    systemd \
+    init \
+    apport \
+    python3-systemd && rm -rf /var/lib/apt/lists/*
+
+# start apport service
+RUN sudo service apport start
+
+# RUN mkdir -p /var/lib/apport
+# RUN mkdir -p /var/lib/apport/coredump
+
 ### download squish
 RUN wget https://dl.min.io/client/mc/release/linux-amd64/mc -O /opt/mc && \
     chmod +x /opt/mc && \
     /opt/mc alias set minio https://minio.owncloud.com packages ${S3SECRET} && \
-    /opt/mc cp --no-color minio/packages/squish/squish-${SQUISHVERSION}.run /opt/squish.run
+    /opt/mc cp --no-color minio/packages/squish/squish-6.7-20210421-1504-qt512x-linux64.run /opt/squish.run
 
 ### next ENTRYPOINT command supports development and should be overriden or disabled
 ### it allows running detached containers created from intermediate images, for example:
@@ -65,7 +90,7 @@ ENV \
     LC_ALL='en_US.UTF-8'
 
 ### 'apt-get clean' runs automatically
-RUN apt-get update && apt-get install -y \
+RUN apt-get update --fix-missing && apt-get install -y apt-transport-https \
         locales \
         supervisor \
         xfce4 \
@@ -95,7 +120,7 @@ ENV NO_VNC_HOME=/usr/share/usr/local/share/noVNCdim
 ### ## Use the older version of websockify to prevent hanging connections on offline containers,
 ### see https://github.com/ConSol/docker-headless-vnc-container/issues/50
 ### installed into '/usr/share/usr/local/share/noVNCdim'
-RUN apt-get update && apt-get install -y \
+RUN apt-get update --fix-missing && apt-get install -y apt-transport-https \
         python-numpy \
     && mkdir -p ${NO_VNC_HOME}/utils/websockify \
     && wget -qO- https://github.com/novnc/noVNC/archive/v1.2.0.tar.gz | tar xz --strip 1 -C ${NO_VNC_HOME} \
