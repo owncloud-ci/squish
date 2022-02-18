@@ -42,7 +42,7 @@ ulimit -c unlimited
 # Turn off the Squish crash handler by setting this environment variable
 export SQUISH_NO_CRASHHANDLER=1
 
-/home/headless/squish/bin/squishserver &
+(/home/headless/squish/bin/squishserver 2>&1 | tee -a ${GUI_TEST_REPORT_DIR}/serverlog.log) &
 
 # squishrunner waits itself for a license to become available, but fails with error 37 if it cannot connect to the license server
 LICENSE_ERROR_RESULT_CODE=37
