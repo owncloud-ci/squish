@@ -36,7 +36,7 @@ cp /dockerstartup/paths.ini ${HOME}/squish/etc/
 mkdir -p ${HOME}/.squish/ver1/
 cp ${SERVER_INI} ${HOME}/.squish/ver1/server.ini
 
-/home/headless/squish/bin/squishserver &
+(/home/headless/squish/bin/squishserver 2>&1 | tee -a ${GUI_TEST_REPORT_DIR}/serverlog.log) &
 
 # squishrunner waits itself for a license to become available, but fails with error 37 if it cannot connect to the license server
 LICENSE_ERROR_RESULT_CODE=37
