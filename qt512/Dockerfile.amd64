@@ -40,6 +40,7 @@ RUN apt-get update && apt-get install -y \
         libcloudproviders-dev \
         qt5keychain-dev \
         python-is-python3 \
+        gdb \
     && apt-get -y autoremove \
     && rm -rf /var/lib/apt/lists/*
 

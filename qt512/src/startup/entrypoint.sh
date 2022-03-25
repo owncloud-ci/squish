@@ -59,3 +59,14 @@ do
     exit $result
   fi
 done
+
+
+handle_core_dumps="${CLIENT_REPO}/.drone/handle-core-dumps.sh"
+if [[ -f "${handle_core_dumps}" ]]; then
+    echo "+++ handling core dumps +++"
+
+    # the core pattern is expected to be /tmp/core-%t-%p-%s-%E
+    "${handle_core_dumps}" /tmp/core-*
+else
+    echo "+++ warning: core dump handler script not found, skipping +++"
+fi
