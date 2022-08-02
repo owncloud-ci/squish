@@ -1,4 +1,4 @@
-ARG BASETAG=21.04
+ARG BASETAG=22.04
 
 FROM ubuntu:${BASETAG} as stage-ubuntu
 # for squish download
@@ -29,6 +29,7 @@ RUN apt-get update && apt-get install -y \
     git \
     wget \
     nano \
+    ffmpeg \
     python3-gi \
     python3-nautilus \
     zlib1g-dev \
