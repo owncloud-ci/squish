@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=disable-screensaver
+Comment=Disable screensaver
+Terminal=true
+Exec=xset s off
