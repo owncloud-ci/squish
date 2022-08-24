@@ -12,6 +12,7 @@ ENV TZ=Europe/Berlin
 RUN yum install -y \
     qt5-qtbase-devel \
     qt5-qttools-devel \
+    qt5-qtsvg \
     qtkeychain-qt5-devel \
     libcloudproviders-devel \
     wget \
