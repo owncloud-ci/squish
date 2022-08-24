@@ -10,35 +10,21 @@ ARG SQUISHVERSION
 ENV TZ=Europe/Berlin
 
 RUN yum install -y \
-    net-tools \
-    sudo \
-    unzip \
-    zip \
-    curl \
-    git \
-    nano \
-    python3-gobject \
-    libsqlite3x-devel \
-    libcmocka-devel \
-    gdbm-devel \
-    expat-devel \
-    libffi-devel \
-    qt5-* \
-    qtkeychain-qt5 \
+    qt5-qtbase-devel \
+    qt5-qttools-devel \
     qtkeychain-qt5-devel \
     libcloudproviders-devel \
     wget \
     hostname \
-    nautilus-python \
-    nss_wrapper
-
-# development tools
-RUN yum -y groups install "C Development Tools and Libraries" "Development Tools" && \
-    yum install -y \
+    nautilus-python\
+    # to build python3
     openssl-devel \
     cairo-devel \
     gobject-introspection-devel \
-    cairo-gobject-devel
+    cairo-gobject-devel \
+    # cleanup
+    && yum autoremove -y \
+    && yum clean all
 
 ### install Python 3.8 including needed modules
 RUN mkdir /python && \
@@ -50,25 +36,12 @@ RUN mkdir /python && \
     cp /python/libpython* /usr/lib && \
     python3.8 -m pip install requests && \
     python3.8 -m pip install pycairo && \
-    python3.8 -m pip install PyGObject
-
-### download squish
-RUN wget https://dl.min.io/client/mc/release/linux-amd64/mc -O /opt/mc && \
-    chmod +x /opt/mc && \
-    /opt/mc alias set minio https://minio.owncloud.com packages ${S3SECRET} && \
-    /opt/mc cp --no-color minio/packages/squish/squish-${SQUISHVERSION}.run /opt/squish.run
+    python3.8 -m pip install PyGObject && \
+    rm -rf /python
 
 FROM stage-fedora as stage-xfce
 
-ENV \
-    LANG='en_US.UTF-8' \
-    LANGUAGE='en_US:en' \
-    LC_ALL='en_US.UTF-8'
-
 RUN yum install -y \
-    mousepad \
-    ristretto \
-    supervisor \
     tumbler \
     Thunar \
     xfce4-appfinder \
@@ -79,13 +52,19 @@ RUN yum install -y \
     xfconf \
     xfdesktop \
     xfwm4 \
-    xfce4-screenshooter \
     dbus-x11 \
     xorg-x11-server-Xorg \
     xorg-x11-xauth \
     langpacks-en \
-    && yum remove -y \
-        xscreensaver*
+    xterm \
+    # cleanup
+    && yum autoremove -y \
+    && yum clean all
+
+ENV \
+    LANG='en_US.UTF-8' \
+    LANGUAGE='en_US:en' \
+    LC_ALL='en_US.UTF-8'
 
 FROM stage-xfce as stage-vnc
 
@@ -105,24 +84,29 @@ RUN yum install -y python3-numpy \
     && mkdir -p ${NO_VNC_HOME}/utils/websockify \
     && wget -qO- https://github.com/novnc/noVNC/archive/v1.2.0.tar.gz | tar xz --strip 1 -C ${NO_VNC_HOME} \
     && wget -qO- https://github.com/novnc/websockify/archive/v0.9.0.tar.gz | tar xz --strip 1 -C ${NO_VNC_HOME}/utils/websockify \
-    && chmod +x -v ${NO_VNC_HOME}/utils/*.sh
-
-### add 'index.html' for choosing noVNC client
-RUN echo \
-"<!DOCTYPE html>\n" \
-"<html>\n" \
-"    <head>\n" \
-"        <title>noVNC</title>\n" \
-"        <meta charset=\"utf-8\"/>\n" \
-"    </head>\n" \
-"    <body>\n" \
-"        <p><a href=\"vnc_lite.html\">noVNC Lite Client</a></p>\n" \
-"        <p><a href=\"vnc.html\">noVNC Full Client</a></p>\n" \
-"    </body>\n" \
-"</html>" \
-> ${NO_VNC_HOME}/index.html
+    && chmod +x -v ${NO_VNC_HOME}/utils/*.sh \
+    ### add 'index.html' for choosing noVNC client
+    && echo \
+    "<!DOCTYPE html>\n" \
+    "<html>\n" \
+    "    <head>\n" \
+    "        <title>noVNC</title>\n" \
+    "        <meta charset=\"utf-8\"/>\n" \
+    "    </head>\n" \
+    "    <body>\n" \
+    "        <p><a href=\"vnc_lite.html\">noVNC Lite Client</a></p>\n" \
+    "        <p><a href=\"vnc.html\">noVNC Full Client</a></p>\n" \
+    "    </body>\n" \
+    "</html>" \
+    > ${NO_VNC_HOME}/index.html
 
 FROM stage-novnc as stage-final
+
+### download squish
+RUN wget https://dl.min.io/client/mc/release/linux-amd64/mc -O /opt/mc && \
+    chmod +x /opt/mc && \
+    /opt/mc alias set minio https://minio.owncloud.com packages ${S3SECRET} && \
+    /opt/mc cp --no-color minio/packages/squish/squish-${SQUISHVERSION}.run /opt/squish.run
 
 ### Arguments can be provided during build
 ARG ARG_HOME
@@ -165,23 +149,20 @@ RUN \
     chmod 664 /etc/passwd /etc/group \
     && echo "headless:x:1001:0:Default:${HOME}:/bin/bash" >> /etc/passwd \
     # && adduser headless \
-    && echo "headless:$VNC_PW" | chpasswd
-RUN chmod +x \
+    && echo "headless:$VNC_PW" | chpasswd \
+    && chmod +x \
         "${STARTUPDIR}/set_user_permissions.sh" \
         "${STARTUPDIR}/generate_container_user.sh" \
         "${STARTUPDIR}/vnc_startup.sh" \
         "${STARTUPDIR}/entrypoint.sh" \
         "/opt/squish.run" \
-        && ${ARG_SUPPORT_USER_GROUP_OVERRIDE/*/chmod a+w /etc/passwd /etc/group} \
-        && gtk-update-icon-cache -f /usr/share/icons/*
+    && ${ARG_SUPPORT_USER_GROUP_OVERRIDE/*/chmod a+w /etc/passwd /etc/group} \
+    && gtk-update-icon-cache -f /usr/share/icons/*
 
 ### Fix permissions
 RUN "${STARTUPDIR}"/set_user_permissions.sh "${STARTUPDIR}" "${HOME}"
 
 EXPOSE ${VNC_PORT} ${NO_VNC_PORT}
-
-RUN yum install -y xterm
-RUN chmod +rx -R "${HOME}/"
 
 ### Switch to default application user (non-root)
 USER 1001
