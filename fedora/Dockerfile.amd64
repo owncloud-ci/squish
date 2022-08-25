@@ -3,10 +3,6 @@ ARG BASETAG=36
 
 FROM ${BASE}:${BASETAG} as stage-fedora
 
-# for squish download
-ARG S3SECRET
-ARG SQUISHVERSION
-
 ENV TZ=Europe/Berlin
 
 RUN yum install -y \
@@ -102,6 +98,10 @@ RUN yum install -y python3-numpy \
     > ${NO_VNC_HOME}/index.html
 
 FROM stage-novnc as stage-final
+
+# for squish download
+ARG S3SECRET
+ARG SQUISHVERSION
 
 ### download squish
 RUN wget https://dl.min.io/client/mc/release/linux-amd64/mc -O /opt/mc && \
