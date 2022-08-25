@@ -191,7 +191,7 @@ def dryrun(config):
     'settings': {
       'dry_run': True,
       'tags': [
-        config['squishversion'][config['version']],
+        config['version'] + '-' + config['squishversion'][config['version']],
         config['version'],
       ],
       'dockerfile': '%s/Dockerfile.%s' % (config['path'], config['arch']),
@@ -226,7 +226,7 @@ def publish(config):
         'from_secret': 'public_password',
       },
       'tags': [
-        config['squishversion'][config['version']],
+        config['version'] + '-' + config['squishversion'][config['version']],
         config['version'],
       ],
       'dockerfile': '%s/Dockerfile.%s' % (config['path'], config['arch']),
