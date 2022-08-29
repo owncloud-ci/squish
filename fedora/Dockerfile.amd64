@@ -5,12 +5,20 @@ FROM ${BASE}:${BASETAG} as stage-fedora
 
 ENV TZ=Europe/Berlin
 
+LABEL maintainer="https://github.com/owncloud-ci"
+LABEL vendor="ownCloud GmbH"
+LABEL version="0.1"
+LABEL description="minimal Fedora with xfce4, VNC & squish to run GUI tests of the ownCloud desktop client in CI. \
+ This container is not maintained nor used by froglogic or the Qt company. \
+ It's not intended for public use but purely for CI runs."
+
 RUN yum install -y \
     qt5-qtbase-devel \
     qt5-qttools-devel \
     qt5-qtsvg \
     qtkeychain-qt5-devel \
     libcloudproviders-devel \
+    ffmpeg-free \
     wget \
     hostname \
     nautilus-python\
