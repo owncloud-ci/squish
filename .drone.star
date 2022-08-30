@@ -1,12 +1,23 @@
 def main(ctx):
   versions = [
     'latest',
-    'qt512'
+    'qt512',
+    'fedora',
   ]
 
   arches = [
     'amd64',
   ]
+
+  # image's base version
+  # For example, in latest's Dockerfile;
+  #   FROM ubuntu:22.04
+  # then,
+  #   'latest': '22.04'
+  base_img_tag = {
+    'latest': ['ubuntu', '22.04'],
+    'fedora': ['fedora', '36'],
+  }
 
   config = {
     'version': 'latest',
@@ -15,6 +26,7 @@ def main(ctx):
     'repo': ctx.repo.name,
     'squishversion': {
         'latest': '6.7-20220106-1008-qt515x-linux64',
+        'fedora': '6.7-20220106-1008-qt515x-linux64',
         'qt512': '6.7-20210421-1504-qt512x-linux64',
     },
     'description': 'Squish for ownCloud CI',
@@ -31,6 +43,17 @@ def main(ctx):
       config['path'] = 'latest'
     else:
       config['path'] = '%s' % config['version']
+
+    config['tags'] = [config['version']]
+    if config['version'] == 'latest':
+      config['tags'].append('%s-%s' % (base_img_tag[config['version']][0], config['squishversion'][config['version']]))
+    else:
+      config['tags'].append('%s-%s' % (config['version'], config['squishversion'][config['version']]))
+    if config['version'] in base_img_tag:
+      config['tags'].append(
+        '%s-%s-%s' % (base_img_tag[config['version']][0], base_img_tag[config['version']][1], config['squishversion'][config['version']])
+      )
+    
 
     stages.append(docker(config))
 
@@ -188,10 +211,7 @@ def dryrun(config):
     },
     'settings': {
       'dry_run': True,
-      'tags': [
-        config['squishversion'][config['version']],
-        config['version'],
-      ],
+      'tags': config['tags'],
       'dockerfile': '%s/Dockerfile.%s' % (config['path'], config['arch']),
       'repo': 'owncloudci/%s' % config['repo'],
       'context': config['path'],
@@ -223,10 +243,7 @@ def publish(config):
       'password': {
         'from_secret': 'public_password',
       },
-      'tags': [
-        config['squishversion'][config['version']],
-        config['version'],
-      ],
+      'tags': config['tags'],
       'dockerfile': '%s/Dockerfile.%s' % (config['path'], config['arch']),
       'repo': 'owncloudci/%s' % config['repo'],
       'context': config['path'],
