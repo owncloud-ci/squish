@@ -30,6 +30,7 @@ RUN apt-get update && apt-get install -y \
     wget \
     nano \
     ffmpeg \
+    gdb \
     python3-gi \
     python3-nautilus \
     zlib1g-dev \
