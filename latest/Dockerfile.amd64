@@ -12,8 +12,8 @@ LABEL maintainer="https://github.com/owncloud-ci"
 LABEL vendor="ownCloud GmbH"
 LABEL version="0.1"
 LABEL description="minimal Ubuntu with xfce4, VNC & squish to run GUI tests of the ownCloud desktop client in CI. \
- This container is not maintained nor used by froglogic or the Qt company. \
- It's not intended for public use but purely for CI runs."
+    This container is not maintained nor used by froglogic or the Qt company. \
+    It's not intended for public use but purely for CI runs."
 
 ### 'apt-get clean' runs automatically
 RUN apt-get update && apt-get install -y \
@@ -60,8 +60,13 @@ RUN apt-get update && apt-get install -y \
     libffi-dev \
     libcairo2-dev \
     libgirepository1.0-dev \
+    && curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add - \
+    && echo "deb https://deb.nodesource.com/node_16.x $(lsb_release -sc) main" | tee /etc/apt/sources.list.d/node.list \
+    && apt-get update -y \
+    && apt-get install -y nodejs \
     && apt-get -y autoremove \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && npm install --silent -g pnpm
 
 ### install Python 3.8 including needed modules
 RUN mkdir /python && \
@@ -98,17 +103,17 @@ ENV \
 
 ### 'apt-get clean' runs automatically
 RUN apt-get update && apt-get install -y \
-        locales \
-        supervisor \
-        xfce4 \
-        xfce4-terminal \
-        xfce4-screenshooter \
-        mousepad \
-        ristretto \
+    locales \
+    supervisor \
+    xfce4 \
+    xfce4-terminal \
+    xfce4-screenshooter \
+    mousepad \
+    ristretto \
     && locale-gen en_US.UTF-8 \
     && apt-get purge -y \
-        pm-utils \
-        xscreensaver* \
+    pm-utils \
+    xscreensaver* \
     && apt-get -y autoremove \
     && rm -rf /var/lib/apt/lists/*
 
@@ -128,7 +133,7 @@ ENV NO_VNC_HOME=/usr/share/usr/local/share/noVNCdim
 ### see https://github.com/ConSol/docker-headless-vnc-container/issues/50
 ### installed into '/usr/share/usr/local/share/noVNCdim'
 RUN apt-get update && apt-get install -y \
-        python3-numpy \
+    python3-numpy \
     && mkdir -p ${NO_VNC_HOME}/utils/websockify \
     && wget -qO- https://github.com/novnc/noVNC/archive/v1.2.0.tar.gz | tar xz --strip 1 -C ${NO_VNC_HOME} \
     && wget -qO- https://github.com/novnc/websockify/archive/v0.9.0.tar.gz | tar xz --strip 1 -C ${NO_VNC_HOME}/utils/websockify \
@@ -137,18 +142,18 @@ RUN apt-get update && apt-get install -y \
 
 ### add 'index.html' for choosing noVNC client
 RUN echo \
-"<!DOCTYPE html>\n" \
-"<html>\n" \
-"    <head>\n" \
-"        <title>noVNC</title>\n" \
-"        <meta charset=\"utf-8\"/>\n" \
-"    </head>\n" \
-"    <body>\n" \
-"        <p><a href=\"vnc_lite.html\">noVNC Lite Client</a></p>\n" \
-"        <p><a href=\"vnc.html\">noVNC Full Client</a></p>\n" \
-"    </body>\n" \
-"</html>" \
-> ${NO_VNC_HOME}/index.html
+    "<!DOCTYPE html>\n" \
+    "<html>\n" \
+    "    <head>\n" \
+    "        <title>noVNC</title>\n" \
+    "        <meta charset=\"utf-8\"/>\n" \
+    "    </head>\n" \
+    "    <body>\n" \
+    "        <p><a href=\"vnc_lite.html\">noVNC Lite Client</a></p>\n" \
+    "        <p><a href=\"vnc.html\">noVNC Full Client</a></p>\n" \
+    "    </body>\n" \
+    "</html>" \
+    > ${NO_VNC_HOME}/index.html
 
 FROM stage-novnc as stage-final
 
@@ -201,11 +206,11 @@ RUN \
     && adduser headless sudo \
     && echo "headless:$VNC_PW" | chpasswd \
     && chmod +x \
-        "${STARTUPDIR}/set_user_permissions.sh" \
-        "${STARTUPDIR}/generate_container_user.sh" \
-        "${STARTUPDIR}/vnc_startup.sh" \
-        "${STARTUPDIR}/entrypoint.sh" \
-        "/opt/squish.run" \
+    "${STARTUPDIR}/set_user_permissions.sh" \
+    "${STARTUPDIR}/generate_container_user.sh" \
+    "${STARTUPDIR}/vnc_startup.sh" \
+    "${STARTUPDIR}/entrypoint.sh" \
+    "/opt/squish.run" \
     && ${ARG_SUPPORT_USER_GROUP_OVERRIDE/*/chmod a+w /etc/passwd /etc/group} \
     && gtk-update-icon-cache -f /usr/share/icons/hicolor
 
