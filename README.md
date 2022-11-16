@@ -20,15 +20,15 @@ This container is not maintained nor used by froglogic, or the Qt company. It's 
 
 ## Environment Variables
 
-| variable            | usage                                                                                                              |
-|---------------------|--------------------------------------------------------------------------------------------------------------------|
-| LICENSEKEY          | squish license key or license server URL                                                                           |
-| CLIENT_REPO         | full path to the root of the client code                                                                           |
-| MIDDLEWARE_URL      | URL of the [testing middleware](https://github.com/owncloud/owncloud-test-middleware)                              |
-| BACKEND_HOST        | URL of the owncloud server                                                                                         |
-| SERVER_INI          | full path of the `server.ini` file to be used                                                                      |
-| SQUISH_PARAMETERS   | further [squishrunner cli parameters](https://doc.froglogic.com/squish/latest/rg-cmdline.html#rg-squishrunner-cli) |
-| GUI_TEST_REPORT_DIR | directory to store GUI test report files                                                                           |
+| variable            | usage                                                                                                                    |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| LICENSEKEY          | squish license key or license server URL                                                                                 |
+| CLIENT_REPO         | full path to the root of the client code                                                                                 |
+| MIDDLEWARE_URL      | URL of the [testing middleware](https://github.com/owncloud/owncloud-test-middleware)                                    |
+| BACKEND_HOST        | URL of the owncloud server                                                                                               |
+| SERVER_INI          | full path of the `server.ini` file to be used                                                                            |
+| SQUISH_PARAMETERS   | further [squishrunner cli parameters](https://doc.froglogic.com/squish/latest/cli-squishrunner.html#rg-squishrunner-cli) |
+| GUI_TEST_REPORT_DIR | directory to store GUI test report files                                                                                 |
 
 ## Update squish
 
