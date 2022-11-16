@@ -9,8 +9,8 @@ LABEL maintainer="https://github.com/owncloud-ci"
 LABEL vendor="ownCloud GmbH"
 LABEL version="0.1"
 LABEL description="minimal Fedora with xfce4, VNC & squish to run GUI tests of the ownCloud desktop client in CI. \
- This container is not maintained nor used by froglogic or the Qt company. \
- It's not intended for public use but purely for CI runs."
+    This container is not maintained nor used by froglogic or the Qt company. \
+    It's not intended for public use but purely for CI runs."
 
 RUN yum install -y \
     qt5-qtbase-devel \
@@ -22,12 +22,15 @@ RUN yum install -y \
     gdb \
     wget \
     hostname \
-    nautilus-python\
+    nautilus-python \
     # to build python3
     openssl-devel \
     cairo-devel \
     gobject-introspection-devel \
     cairo-gobject-devel \
+    # node 16 and pnpm
+    && yum module install -y nodejs:16 \
+    && npm install --silent -g pnpm \
     # cleanup
     && yum autoremove -y \
     && yum clean all
@@ -161,11 +164,11 @@ RUN \
     # && adduser headless \
     && echo "headless:$VNC_PW" | chpasswd \
     && chmod +x \
-        "${STARTUPDIR}/set_user_permissions.sh" \
-        "${STARTUPDIR}/generate_container_user.sh" \
-        "${STARTUPDIR}/vnc_startup.sh" \
-        "${STARTUPDIR}/entrypoint.sh" \
-        "/opt/squish.run" \
+    "${STARTUPDIR}/set_user_permissions.sh" \
+    "${STARTUPDIR}/generate_container_user.sh" \
+    "${STARTUPDIR}/vnc_startup.sh" \
+    "${STARTUPDIR}/entrypoint.sh" \
+    "/opt/squish.run" \
     && ${ARG_SUPPORT_USER_GROUP_OVERRIDE/*/chmod a+w /etc/passwd /etc/group} \
     && gtk-update-icon-cache -f /usr/share/icons/*
 
