@@ -53,7 +53,7 @@ def main(ctx):
       config['tags'].append(
         '%s-%s-%s' % (base_img_tag[config['version']][0], base_img_tag[config['version']][1], config['squishversion'][config['version']])
       )
-    
+
 
     stages.append(docker(config))
 
@@ -102,7 +102,7 @@ def documentation(config):
     'steps': [
       {
         'name': 'link-check',
-        'image': 'ghcr.io/tcort/markdown-link-check:3.8.7',
+        'image': 'ghcr.io/tcort/markdown-link-check:3.11.0',
         'commands': [
           '/src/markdown-link-check README.md',
         ],
