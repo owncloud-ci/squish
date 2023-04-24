@@ -1,0 +1,4 @@
+[Desktop Entry]
+Type=Application
+Name=gnome-keyring-daemon
+Exec=/dockerstartup/gnome-keyring.sh

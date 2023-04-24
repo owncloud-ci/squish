@@ -23,6 +23,7 @@ RUN yum install -y \
     wget \
     hostname \
     nautilus-python \
+    gnome-keyring \
     # to build python3
     openssl-devel \
     cairo-devel \
@@ -78,7 +79,7 @@ ENV \
 FROM stage-xfce as stage-vnc
 
 ### Bintray has been deprecated and disabled since 2021-05-01
-RUN wget -qO- https://github.com/accetto/tigervnc/releases/download/v1.10.1-mirror/tigervnc-1.10.1.x86_64.tar.gz | tar xz --strip 1 -C /
+RUN wget -qO- https://sourceforge.net/projects/tigervnc/files/stable/1.10.1/tigervnc-1.10.1.x86_64.tar.gz/download | tar xz --strip 1 -C /
 
 FROM stage-vnc as stage-novnc
 
@@ -168,6 +169,7 @@ RUN \
     "${STARTUPDIR}/generate_container_user.sh" \
     "${STARTUPDIR}/vnc_startup.sh" \
     "${STARTUPDIR}/entrypoint.sh" \
+    "${STARTUPDIR}/gnome-keyring.sh" \
     "/opt/squish.run" \
     && ${ARG_SUPPORT_USER_GROUP_OVERRIDE/*/chmod a+w /etc/passwd /etc/group} \
     && gtk-update-icon-cache -f /usr/share/icons/*
