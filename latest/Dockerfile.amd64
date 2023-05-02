@@ -1,6 +1,7 @@
-ARG BASETAG=22.04
+ARG BASE=owncloudci/client
+ARG BASETAG=ubuntu-22.04-amd64
 
-FROM ubuntu:${BASETAG} as stage-ubuntu
+FROM ${BASE}:${BASETAG} as stage-ubuntu
 # for squish download
 ARG S3SECRET
 ARG SQUISHVERSION
@@ -79,16 +80,6 @@ RUN mkdir /python && \
     python3.8 -m pip install requests && \
     python3.8 -m pip install pycairo && \
     python3.8 -m pip install PyGObject
-
-RUN git clone https://github.com/kdab/kdsingleapplication && \
-    cd kdsingleapplication && \
-    mkdir build && \
-    cd build && \
-    cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=/usr -G Ninja && \
-    ninja install -v && \
-    cd ../.. && \
-    rm -r kdsingleapplication && \
-    ldconfig
 
 ### download squish
 RUN wget https://dl.min.io/client/mc/release/linux-amd64/mc -O /opt/mc && \
