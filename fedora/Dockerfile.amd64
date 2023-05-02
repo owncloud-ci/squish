@@ -13,6 +13,7 @@ LABEL description="minimal Fedora with xfce4, VNC & squish to run GUI tests of t
     It's not intended for public use but purely for CI runs."
 
 RUN yum install -y \
+    git \
     qt5-qtbase-devel \
     qt5-qttools-devel \
     qt5-qtsvg \
@@ -48,6 +49,16 @@ RUN mkdir /python && \
     python3.8 -m pip install PyGObject && \
     rm -rf /python
 
+RUN git clone https://github.com/kdab/kdsingleapplication && \
+    cd kdsingleapplication && \
+    mkdir build && \
+    cd build && \
+    cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=/usr -G Ninja && \
+    ninja install -v && \
+    cd ../.. && \
+    rm -r kdsingleapplication && \
+    ldconfig
+
 FROM stage-fedora as stage-xfce
 
 RUN yum install -y \
@@ -78,7 +89,7 @@ ENV \
 FROM stage-xfce as stage-vnc
 
 ### Bintray has been deprecated and disabled since 2021-05-01
-RUN wget -qO- https://github.com/accetto/tigervnc/releases/download/v1.10.1-mirror/tigervnc-1.10.1.x86_64.tar.gz | tar xz --strip 1 -C /
+RUN wget -qO- https://sourceforge.net/projects/tigervnc/files/stable/1.10.1/tigervnc-1.10.1.x86_64.tar.gz/download | tar xz --strip 1 -C /
 
 FROM stage-vnc as stage-novnc
 
