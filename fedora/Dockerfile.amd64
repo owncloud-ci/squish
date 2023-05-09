@@ -1,5 +1,5 @@
 ARG BASE=owncloudci/client
-ARG BASETAG=fedora-36-amd64
+ARG BASETAG=fedora-38-amd64
 
 FROM ${BASE}:${BASETAG} as stage-fedora
 

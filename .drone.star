@@ -16,7 +16,7 @@ def main(ctx):
   #   'latest': '22.04'
   base_img_tag = {
     'latest': ['ubuntu', '22.04'],
-    'fedora': ['fedora', '36'],
+    'fedora': ['fedora', '38'],
   }
 
   config = {
