@@ -1,6 +1,7 @@
-ARG BASETAG=22.04
+ARG BASE=owncloudci/client
+ARG BASETAG=ubuntu-22.04-amd64
 
-FROM ubuntu:${BASETAG} as stage-ubuntu
+FROM ${BASE}:${BASETAG} as stage-ubuntu
 # for squish download
 ARG S3SECRET
 ARG SQUISHVERSION
@@ -120,7 +121,7 @@ RUN apt-get update && apt-get install -y \
 FROM stage-xfce as stage-vnc
 
 ### Bintray has been deprecated and disabled since 2021-05-01
-RUN wget -qO- https://github.com/accetto/tigervnc/releases/download/v1.10.1-mirror/tigervnc-1.10.1.x86_64.tar.gz | tar xz --strip 1 -C /
+RUN wget -qO- https://sourceforge.net/projects/tigervnc/files/stable/1.10.1/tigervnc-1.10.1.x86_64.tar.gz/download | tar xz --strip 1 -C /
 
 FROM stage-vnc as stage-novnc
 
