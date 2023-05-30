@@ -13,10 +13,10 @@ LABEL description="minimal Fedora with xfce4, VNC & squish to run GUI tests of t
     It's not intended for public use but purely for CI runs."
 
 RUN yum install -y \
-    qt5-qtbase-devel \
-    qt5-qttools-devel \
+    # qt5-qtbase-devel \
+    # qt5-qttools-devel \
+    # qtkeychain-qt5-devel \
     qt5-qtsvg \
-    qtkeychain-qt5-devel \
     libcloudproviders-devel \
     ffmpeg-free \
     gdb \
