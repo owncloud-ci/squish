@@ -22,7 +22,6 @@ def main(ctx):
   config = {
     'version': 'latest',
     'arch': 'amd64',
-    'trigger': [],
     'repo': ctx.repo.name,
     'squishversion': {
         'latest': '6.7-20220106-1008-qt515x-linux64',
@@ -53,7 +52,7 @@ def main(ctx):
       config['tags'].append(
         '%s-%s-%s' % (base_img_tag[config['version']][0], base_img_tag[config['version']][1], config['squishversion'][config['version']])
       )
-    
+
 
     stages.append(docker(config))
 
@@ -145,7 +144,7 @@ def notification(config):
     'image': 'plugins/slack',
     'settings': {
       'webhook': {
-        'from_secret': 'private_rocketchat',
+        'from_secret': 'rocketchat_chat_webhook',
       },
       'channel': 'builds',
     },
@@ -156,26 +155,6 @@ def notification(config):
       ],
     },
   }]
-
-  downstream = [{
-    'name': 'downstream',
-    'image': 'plugins/downstream',
-    'settings': {
-      'token': {
-        'from_secret': 'drone_token',
-      },
-      'server': 'https://drone.owncloud.com',
-      'repositories': config['trigger'],
-    },
-    'when': {
-      'status': [
-        'success',
-      ],
-    },
-  }]
-
-  if config['trigger']:
-    steps = downstream + steps
 
   return {
     'kind': 'pipeline',
