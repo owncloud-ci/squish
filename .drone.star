@@ -77,9 +77,6 @@ def docker(config):
       'arch': config['arch'],
     },
     'steps': steps(config),
-    'image_pull_secrets': [
-      'registries',
-    ],
     'depends_on': [],
     'trigger': {
       'ref': [
