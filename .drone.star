@@ -25,7 +25,7 @@ def main(ctx):
     'repo': ctx.repo.name,
     'squishversion': {
         'latest': '6.7-20220106-1008-qt515x-linux64',
-        'fedora': '6.7-20220106-1008-qt515x-linux64',
+        'fedora': 'squish-7.1.1-qt64x-linux64',
         'qt512': '6.7-20210421-1504-qt512x-linux64',
     },
     'description': 'Squish for ownCloud CI',
