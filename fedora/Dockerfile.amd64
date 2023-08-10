@@ -13,10 +13,10 @@ LABEL description="minimal Fedora with xfce4, VNC & squish to run GUI tests of t
     It's not intended for public use but purely for CI runs."
 
 RUN yum install -y \
-    qt5-qtbase-devel \
-    qt5-qttools-devel \
-    qt5-qtsvg \
-    qtkeychain-qt5-devel \
+    qt6-qtbase-devel-6.4.3 \
+    qt6-qttools-devel-6.4.3 \
+    qt6-qtsvg-6.4.3 \
+    qtkeychain-qt6-devel \
     libcloudproviders-devel \
     ffmpeg-free \
     gdb \
@@ -35,17 +35,17 @@ RUN yum install -y \
     && yum autoremove -y \
     && yum clean all
 
-### install Python 3.8 including needed modules
+### install Python 3.10 including needed modules
 RUN mkdir /python && \
     cd /python && \
-    wget -O-  https://www.python.org/ftp/python/3.8.9/Python-3.8.9.tgz | tar xz --strip 1 -C . && \
+    wget -O-  https://www.python.org/ftp/python/3.10.12/Python-3.10.12.tgz | tar xz --strip 1 -C . && \
     ./configure --enable-optimizations --enable-shared --prefix=/usr/local LDFLAGS="-Wl,-rpath /usr/local/lib" && \
     make && \
     sudo make install && \
     cp /python/libpython* /usr/lib && \
-    python3.8 -m pip install requests && \
-    python3.8 -m pip install pycairo && \
-    python3.8 -m pip install PyGObject && \
+    python3.10 -m pip install requests && \
+    python3.10 -m pip install pycairo && \
+    python3.10 -m pip install PyGObject && \
     rm -rf /python
 
 FROM stage-fedora as stage-xfce
