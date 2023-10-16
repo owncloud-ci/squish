@@ -17,11 +17,11 @@ RUN yum install -y \
     qt6-qttools-devel-6.4.3 \
     qt6-qtsvg-6.4.3 \
     qtkeychain-qt6-devel \
-    libcloudproviders-devel \
     ffmpeg-free \
     gdb \
     wget \
     hostname \
+    gnome-keyring \
     nautilus-python \
     # to build python3
     openssl-devel \
@@ -168,6 +168,7 @@ RUN \
     "${STARTUPDIR}/generate_container_user.sh" \
     "${STARTUPDIR}/vnc_startup.sh" \
     "${STARTUPDIR}/entrypoint.sh" \
+    "${STARTUPDIR}/gnome-keyring" \
     "/opt/squish.run" \
     && ${ARG_SUPPORT_USER_GROUP_OVERRIDE/*/chmod a+w /etc/passwd /etc/group} \
     && gtk-update-icon-cache -f /usr/share/icons/*
