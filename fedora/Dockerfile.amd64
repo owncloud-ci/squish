@@ -17,7 +17,6 @@ RUN yum install -y \
     qt6-qttools-devel-6.4.3 \
     qt6-qtsvg-6.4.3 \
     qtkeychain-qt6-devel \
-    libcloudproviders-devel \
     ffmpeg-free \
     gdb \
     wget \
