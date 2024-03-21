@@ -13,10 +13,7 @@ LABEL description="minimal Fedora with xfce4, VNC & squish to run GUI tests of t
     It's not intended for public use but purely for CI runs."
 
 RUN yum install -y \
-    qt6-qtbase-devel-6.4.3 \
-    qt6-qttools-devel-6.4.3 \
     qt6-qtsvg-6.4.3 \
-    qtkeychain-qt6-devel \
     ffmpeg-free \
     gdb \
     wget \
@@ -69,11 +66,6 @@ RUN yum install -y \
     # cleanup
     && yum autoremove -y \
     && yum clean all
-
-ENV \
-    LANG='en_US.UTF-8' \
-    LANGUAGE='en_US:en' \
-    LC_ALL='en_US.UTF-8'
 
 FROM stage-xfce as stage-vnc
 
