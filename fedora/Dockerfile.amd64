@@ -1,9 +1,10 @@
-ARG BASE=owncloudci/client
-ARG BASETAG=fedora-38-amd64
+ARG BASE=fedora
+ARG BASETAG=39
+
+ARG ARG_CLIENT_BRANCH
+ARG ARG_CLIENT_BUILD_TARGET
 
 FROM ${BASE}:${BASETAG} as stage-fedora
-
-ENV TZ=Europe/Berlin
 
 LABEL maintainer="https://github.com/owncloud-ci"
 LABEL vendor="ownCloud GmbH"
@@ -12,21 +13,34 @@ LABEL description="minimal Fedora with xfce4, VNC & squish to run GUI tests of t
     This container is not maintained nor used by froglogic or the Qt company. \
     It's not intended for public use but purely for CI runs."
 
+ENV TZ=Europe/Berlin
+ENV TERM xterm
+ENV LANG C.UTF-8
+ENV LANGUAGE en_US:en
+ENV LC_ALL C.UTF-8
+
+ENV FONTCONFIG_PATH=/etc/fonts
+ENV OWNBUILD_DIR=/ownbuild
+ENV CLIENT_BRANCH=${ARG_CLIENT_BRANCH:-master}
+ENV CLIENT_BUILD_TARGET=${ARG_CLIENT_BUILD_TARGET:-linux-gcc-x86_64-squish}
+
 RUN yum install -y \
-    qt6-qtsvg-6.4.3 \
-    ffmpeg-free \
-    gdb \
     wget \
+    git-core \
+    ffmpeg-free \
     hostname \
-    gnome-keyring \
-    nautilus-python \
     # to build python3
     openssl-devel \
     cairo-devel \
     gobject-introspection-devel \
     cairo-gobject-devel \
-    # node 16 and pnpm
-    && yum module install -y nodejs:16 \
+    sqlite-devel \
+    # used in GUI test code
+    gdb \
+    gnome-keyring \
+    nautilus-python \
+    procps-ng \
+    nodejs \
     && npm install --silent -g pnpm \
     # cleanup
     && yum autoremove -y \
@@ -45,8 +59,38 @@ RUN mkdir /python && \
     python3.10 -m pip install PyGObject && \
     rm -rf /python
 
-FROM stage-fedora as stage-xfce
+FROM stage-fedora as stage-craft
 
+RUN yum install -y \
+    cmake \
+    ninja-build \
+    libEGL-devel \
+    gcc \
+    gcc-c++ \
+    libxkbcommon-devel \
+    libxkbcommon-x11-devel \
+    xcb-util* \
+    # cleanup
+    && yum autoremove -y \
+    && yum clean all
+
+RUN mkdir -p ${OWNBUILD_DIR} && \
+    wget https://raw.githubusercontent.com/owncloud/ownbuild/master/ownbuild.py -O ${OWNBUILD_DIR}/ownbuild.py && \
+    python3.10 ${OWNBUILD_DIR}/ownbuild.py \
+    --branch ${CLIENT_BRANCH} \
+    --target ${CLIENT_BUILD_TARGET} \
+    -- \
+    --install-deps owncloud-client && \
+    rm -rf ${OWNBUILD_DIR}/craftmast && \
+    rm -rf ${OWNBUILD_DIR}/${CLIENT_BRANCH}/blueprints && \
+    rm -rf ${OWNBUILD_DIR}/${CLIENT_BRANCH}/downloads && \
+    rm -rf ${OWNBUILD_DIR}/${CLIENT_BRANCH}/logs
+
+ENV CMAKE_PREFIX_PATH=${OWNBUILD_DIR}/${CLIENT_BRANCH}/${CLIENT_BUILD_TARGET}
+
+FROM stage-craft as stage-xfce
+
+RUN yum remove -y systemd-standalone-tmpfiles
 RUN yum install -y \
     tumbler \
     Thunar \
@@ -69,20 +113,20 @@ RUN yum install -y \
 
 FROM stage-xfce as stage-vnc
 
-### Bintray has been deprecated and disabled since 2021-05-01
-RUN wget -qO- https://sourceforge.net/projects/tigervnc/files/stable/1.10.1/tigervnc-1.10.1.x86_64.tar.gz/download | tar xz --strip 1 -C /
-
-FROM stage-vnc as stage-novnc
+RUN yum install -y \
+    tigervnc-server \
+    # used for websockify/novnc
+    python3-numpy \
+    && yum autoremove -y \
+    && yum clean all
 
 ### same parent path as VNC
 ENV NO_VNC_HOME=/usr/share/usr/local/share/noVNCdim
 
-### 'python3-numpy' used for websockify/novnc
-### ## Use the older version of websockify to prevent hanging connections on offline containers,
+### Use the older version of websockify to prevent hanging connections on offline containers,
 ### see https://github.com/ConSol/docker-headless-vnc-container/issues/50
 ### installed into '/usr/share/usr/local/share/noVNCdim'
-RUN yum install -y python3-numpy \
-    && mkdir -p ${NO_VNC_HOME}/utils/websockify \
+RUN mkdir -p ${NO_VNC_HOME}/utils/websockify \
     && wget -qO- https://github.com/novnc/noVNC/archive/v1.2.0.tar.gz | tar xz --strip 1 -C ${NO_VNC_HOME} \
     && wget -qO- https://github.com/novnc/websockify/archive/v0.9.0.tar.gz | tar xz --strip 1 -C ${NO_VNC_HOME}/utils/websockify \
     && chmod +x -v ${NO_VNC_HOME}/utils/*.sh \
@@ -101,7 +145,7 @@ RUN yum install -y python3-numpy \
     "</html>" \
     > ${NO_VNC_HOME}/index.html
 
-FROM stage-novnc as stage-final
+FROM stage-vnc as stage-final
 
 # for squish download
 ARG S3SECRET
@@ -153,7 +197,6 @@ COPY [ "./src/home/config/autostart", "${HOME}/.config/autostart/" ]
 RUN \
     chmod 664 /etc/passwd /etc/group \
     && echo "headless:x:1001:0:Default:${HOME}:/bin/bash" >> /etc/passwd \
-    # && adduser headless \
     && echo "headless:$VNC_PW" | chpasswd \
     && chmod +x \
     "${STARTUPDIR}/set_user_permissions.sh" \

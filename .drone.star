@@ -16,7 +16,7 @@ def main(ctx):
   #   'latest': '22.04'
   base_img_tag = {
     'latest': ['ubuntu', '22.04'],
-    'fedora': ['fedora', '38'],
+    'fedora': ['fedora', '39'],
   }
 
   config = {
@@ -25,7 +25,7 @@ def main(ctx):
     'repo': ctx.repo.name,
     'squishversion': {
         'latest': '7.1.1-qt64x-linux64',
-        'fedora': '7.1.1-qt64x-linux64',
+        'fedora': '7.2.1-qt66x-linux64',
         'qt512': '6.7-20210421-1504-qt512x-linux64',
     },
     'description': 'Squish for ownCloud CI',
