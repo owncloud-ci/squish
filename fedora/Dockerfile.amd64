@@ -13,8 +13,8 @@ LABEL description="minimal Fedora with xfce4, VNC & squish to run GUI tests of t
     This container is not maintained nor used by froglogic or the Qt company. \
     It's not intended for public use but purely for CI runs."
 
-ENV TZ=Europe/Berlin
-ENV TERM xterm
+# ENV TZ=Europe/Berlin
+ENV TZ=Asia/Kathmandu
 ENV LANG C.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL C.UTF-8
@@ -27,26 +27,23 @@ ENV CLIENT_BUILD_TARGET=${ARG_CLIENT_BUILD_TARGET:-linux-gcc-x86_64-squish}
 RUN yum install -y \
     wget \
     git-core \
-    ffmpeg-free \
     hostname \
-    # to build python3
+    # for python3 and its modules
     openssl-devel \
-    cairo-devel \
+    sqlite-devel \
     gobject-introspection-devel \
     cairo-gobject-devel \
-    sqlite-devel \
     # used in GUI test code
     gdb \
     gnome-keyring \
     nautilus-python \
-    procps-ng \
     nodejs \
-    && npm install --silent -g pnpm \
+    && npm i -s -g pnpm \
     # cleanup
     && yum autoremove -y \
     && yum clean all
 
-### install Python 3.10 including needed modules
+### install Python 3.10
 RUN mkdir /python && \
     cd /python && \
     wget -O-  https://www.python.org/ftp/python/3.10.12/Python-3.10.12.tgz | tar xz --strip 1 -C . && \
@@ -54,9 +51,6 @@ RUN mkdir /python && \
     make && \
     sudo make install && \
     cp /python/libpython* /usr/lib && \
-    python3.10 -m pip install requests && \
-    python3.10 -m pip install pycairo && \
-    python3.10 -m pip install PyGObject && \
     rm -rf /python
 
 FROM stage-fedora as stage-craft
@@ -90,8 +84,8 @@ ENV CMAKE_PREFIX_PATH=${OWNBUILD_DIR}/${CLIENT_BRANCH}/${CLIENT_BUILD_TARGET}
 
 FROM stage-craft as stage-xfce
 
-RUN yum remove -y systemd-standalone-tmpfiles
 RUN yum install -y \
+    # xfce desktop
     tumbler \
     Thunar \
     xfce4-appfinder \
@@ -107,16 +101,11 @@ RUN yum install -y \
     xorg-x11-xauth \
     langpacks-en \
     xterm \
-    # cleanup
-    && yum autoremove -y \
-    && yum clean all
-
-FROM stage-xfce as stage-vnc
-
-RUN yum install -y \
+    # vnc server
     tigervnc-server \
     # used for websockify/novnc
     python3-numpy \
+    # cleanup
     && yum autoremove -y \
     && yum clean all
 
@@ -145,17 +134,18 @@ RUN mkdir -p ${NO_VNC_HOME}/utils/websockify \
     "</html>" \
     > ${NO_VNC_HOME}/index.html
 
-FROM stage-vnc as stage-final
+FROM stage-xfce as stage-final
 
 # for squish download
 ARG S3SECRET
 ARG SQUISHVERSION
 
 ### download squish
-RUN wget https://dl.min.io/client/mc/release/linux-amd64/mc -O /opt/mc && \
-    chmod +x /opt/mc && \
-    /opt/mc alias set minio https://minio.owncloud.com packages ${S3SECRET} && \
-    /opt/mc cp --no-color minio/packages/squish/squish-${SQUISHVERSION}.run /opt/squish.run
+# RUN wget https://dl.min.io/client/mc/release/linux-amd64/mc -O /opt/mc && \
+#     chmod +x /opt/mc && \
+#     /opt/mc alias set minio https://minio.owncloud.com packages ${S3SECRET} && \
+#     /opt/mc cp --no-color minio/packages/squish/squish-${SQUISHVERSION}.run /opt/squish.run
+COPY ["./tmp/squish-7.1.1-qt64x-linux64.run", "/opt/squish.run"]
 
 ### Arguments can be provided during build
 ARG ARG_HOME
@@ -182,6 +172,7 @@ ENV \
 ### Creates home folder
 WORKDIR ${HOME}
 SHELL ["/bin/bash", "-c"]
+ENV PATH=$PATH:${HOME}/.local/bin
 
 COPY [ "./src/startup", "${STARTUPDIR}/" ]
 
@@ -196,7 +187,8 @@ COPY [ "./src/home/config/autostart", "${HOME}/.config/autostart/" ]
 ### writable for all users, adding support for user group override (like 'run --user x:y').
 RUN \
     chmod 664 /etc/passwd /etc/group \
-    && echo "headless:x:1001:0:Default:${HOME}:/bin/bash" >> /etc/passwd \
+    && echo "headless:x:1001:headless" >> /etc/group \
+    && echo "headless:x:1001:1001:Default:${HOME}:/bin/bash" >> /etc/passwd \
     && echo "headless:$VNC_PW" | chpasswd \
     && chmod +x \
     "${STARTUPDIR}/set_user_permissions.sh" \
@@ -204,12 +196,12 @@ RUN \
     "${STARTUPDIR}/vnc_startup.sh" \
     "${STARTUPDIR}/entrypoint.sh" \
     "${STARTUPDIR}/gnome-keyring" \
-    "/opt/squish.run" \
-    && ${ARG_SUPPORT_USER_GROUP_OVERRIDE/*/chmod a+w /etc/passwd /etc/group} \
-    && gtk-update-icon-cache -f /usr/share/icons/*
+    "/opt/squish.run"
 
-### Fix permissions
-RUN "${STARTUPDIR}"/set_user_permissions.sh "${STARTUPDIR}" "${HOME}"
+RUN ${ARG_SUPPORT_USER_GROUP_OVERRIDE/*/chmod a+w /etc/passwd /etc/group} \
+    && gtk-update-icon-cache -f /usr/share/icons/* \
+    ### Fix permissions
+    && "${STARTUPDIR}"/set_user_permissions.sh "${STARTUPDIR}" "${HOME}"
 
 EXPOSE ${VNC_PORT} ${NO_VNC_PORT}
 

@@ -103,7 +103,11 @@ if [[ ! -f "${XSTARTUP_FILE}" ]] ; then
 #!/bin/sh
 unset SESSION_MANAGER
 unset DBUS_SESSION_BUS_ADDRESS
-startxfce4 &
+
+[ -x /etc/vnc/xstartup ] && exec /etc/vnc/xstartup
+[ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
+
+dbus-launch --exit-with-session startxfce4 &
 EOF
 fi
 
