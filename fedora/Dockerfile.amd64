@@ -4,6 +4,46 @@ ARG BASETAG=39
 ARG ARG_CLIENT_BRANCH
 ARG ARG_CLIENT_BUILD_TARGET
 
+FROM ${BASE}:${BASETAG} as stage-build
+
+ENV OWNBUILD_DIR=/ownbuild
+ENV CLIENT_BRANCH=${ARG_CLIENT_BRANCH:-master}
+ENV CLIENT_BUILD_TARGET=${ARG_CLIENT_BUILD_TARGET:-linux-gcc-x86_64-squish}
+
+RUN dnf install -y \
+    git-core \
+    cmake \
+    ninja-build \
+    libEGL-devel \
+    gcc \
+    gcc-c++ \
+    libxkbcommon-devel \
+    libxkbcommon-x11-devel \
+    xcb-util*
+
+RUN curl https://dl.fedoraproject.org/pub/fedora/linux/releases/39/Everything/x86_64/os/Packages/p/python3.10-3.10.13-1.fc39.x86_64.rpm \
+    -so python3.10.13.rpm && \
+    dnf install -y ./python3.10.13.rpm
+
+RUN mkdir -p ${OWNBUILD_DIR} && \
+    curl https://raw.githubusercontent.com/owncloud/ownbuild/master/ownbuild.py -so ${OWNBUILD_DIR}/ownbuild.py && \
+    python3.10 ${OWNBUILD_DIR}/ownbuild.py \
+    --branch ${CLIENT_BRANCH} \
+    --target ${CLIENT_BUILD_TARGET} \
+    -- \
+    --options "libs/llvm.ignored=True" \
+    --install-deps owncloud-client && \
+    # remove unnecessary files
+    cd ${OWNBUILD_DIR}/${CLIENT_BRANCH}/${CLIENT_BUILD_TARGET} && \
+    mv ./lib/gettext/hostname ./dev-utils/bin/hostname && \
+    rm -rf build home logs craft translations && \
+    rm -rf ./lib/libpython* ./lib/gettext ./lib/perl* ./lib/python3* && \
+    rm -rf ./dev-utils/**/7z* ./dev-utils/bin/python* && \
+    rm -rf ./bin/python* ./include/python* && \
+    rm -rf ./etc/virtualenv && \
+    find ./ -name doc | xargs rm -rf && \
+    find ./ -name man | xargs rm -rf
+
 FROM ${BASE}:${BASETAG} as stage-fedora
 
 LABEL maintainer="https://github.com/owncloud-ci"
@@ -13,8 +53,7 @@ LABEL description="minimal Fedora with xfce4, VNC & squish to run GUI tests of t
     This container is not maintained nor used by froglogic or the Qt company. \
     It's not intended for public use but purely for CI runs."
 
-# ENV TZ=Europe/Berlin
-ENV TZ=Asia/Kathmandu
+ENV TZ=Europe/Berlin
 ENV LANG C.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL C.UTF-8
@@ -24,13 +63,11 @@ ENV OWNBUILD_DIR=/ownbuild
 ENV CLIENT_BRANCH=${ARG_CLIENT_BRANCH:-master}
 ENV CLIENT_BUILD_TARGET=${ARG_CLIENT_BUILD_TARGET:-linux-gcc-x86_64-squish}
 
-RUN yum install -y \
-    wget \
-    git-core \
-    hostname \
-    # for python3 and its modules
-    openssl-devel \
-    sqlite-devel \
+RUN dnf install -y --setopt=install_weak_deps=False \
+    # to build client
+    libEGL-devel \
+    gcc-c++ \
+    # for python3 modules
     gobject-introspection-devel \
     cairo-gobject-devel \
     # used in GUI test code
@@ -38,54 +75,28 @@ RUN yum install -y \
     gnome-keyring \
     nautilus-python \
     nodejs \
-    && npm i -s -g pnpm \
+    pnpm \
     # cleanup
-    && yum autoremove -y \
-    && yum clean all
+    && dnf autoremove -y \
+    && dnf clean all \
+    && dnf clean dbcache
 
 ### install Python 3.10
-RUN mkdir /python && \
-    cd /python && \
-    wget -O-  https://www.python.org/ftp/python/3.10.12/Python-3.10.12.tgz | tar xz --strip 1 -C . && \
-    ./configure --enable-optimizations --enable-shared --prefix=/usr/local LDFLAGS="-Wl,-rpath /usr/local/lib" && \
-    make && \
-    sudo make install && \
-    cp /python/libpython* /usr/lib && \
-    rm -rf /python
+RUN curl https://dl.fedoraproject.org/pub/fedora/linux/releases/39/Everything/x86_64/os/Packages/p/python3.10-3.10.13-1.fc39.x86_64.rpm \
+    -so python3.10.13.rpm && \
+    dnf install -y ./python3.10.13.rpm python3.10-devel && \
+    dnf autoremove -y && \
+    dnf clean all && \
+    dnf clean dbcache && \
+    rm ./python3.10.13.rpm && \
+    python3.10 -m ensurepip
 
-FROM stage-fedora as stage-craft
+FROM stage-fedora as stage-xfce
 
-RUN yum install -y \
-    cmake \
-    ninja-build \
-    libEGL-devel \
-    gcc \
-    gcc-c++ \
-    libxkbcommon-devel \
+RUN dnf install -y --setopt=install_weak_deps=False \
     libxkbcommon-x11-devel \
     xcb-util* \
-    # cleanup
-    && yum autoremove -y \
-    && yum clean all
-
-RUN mkdir -p ${OWNBUILD_DIR} && \
-    wget https://raw.githubusercontent.com/owncloud/ownbuild/master/ownbuild.py -O ${OWNBUILD_DIR}/ownbuild.py && \
-    python3.10 ${OWNBUILD_DIR}/ownbuild.py \
-    --branch ${CLIENT_BRANCH} \
-    --target ${CLIENT_BUILD_TARGET} \
-    -- \
-    --install-deps owncloud-client && \
-    rm -rf ${OWNBUILD_DIR}/craftmast && \
-    rm -rf ${OWNBUILD_DIR}/${CLIENT_BRANCH}/blueprints && \
-    rm -rf ${OWNBUILD_DIR}/${CLIENT_BRANCH}/downloads && \
-    rm -rf ${OWNBUILD_DIR}/${CLIENT_BRANCH}/logs
-
-ENV CMAKE_PREFIX_PATH=${OWNBUILD_DIR}/${CLIENT_BRANCH}/${CLIENT_BUILD_TARGET}
-
-FROM stage-craft as stage-xfce
-
-RUN yum install -y \
-    # xfce desktop
+    alsa-lib \
     tumbler \
     Thunar \
     xfce4-appfinder \
@@ -106,8 +117,9 @@ RUN yum install -y \
     # used for websockify/novnc
     python3-numpy \
     # cleanup
-    && yum autoremove -y \
-    && yum clean all
+    && dnf autoremove -y \
+    && dnf clean all \
+    && dnf clean dbcache
 
 ### same parent path as VNC
 ENV NO_VNC_HOME=/usr/share/usr/local/share/noVNCdim
@@ -116,8 +128,8 @@ ENV NO_VNC_HOME=/usr/share/usr/local/share/noVNCdim
 ### see https://github.com/ConSol/docker-headless-vnc-container/issues/50
 ### installed into '/usr/share/usr/local/share/noVNCdim'
 RUN mkdir -p ${NO_VNC_HOME}/utils/websockify \
-    && wget -qO- https://github.com/novnc/noVNC/archive/v1.2.0.tar.gz | tar xz --strip 1 -C ${NO_VNC_HOME} \
-    && wget -qO- https://github.com/novnc/websockify/archive/v0.9.0.tar.gz | tar xz --strip 1 -C ${NO_VNC_HOME}/utils/websockify \
+    && curl -sL https://github.com/novnc/noVNC/archive/v1.2.0.tar.gz | tar xz --strip 1 -C ${NO_VNC_HOME} \
+    && curl -sL https://github.com/novnc/websockify/archive/v0.9.0.tar.gz | tar xz --strip 1 -C ${NO_VNC_HOME}/utils/websockify \
     && chmod +x -v ${NO_VNC_HOME}/utils/*.sh \
     ### add 'index.html' for choosing noVNC client
     && echo \
@@ -134,18 +146,24 @@ RUN mkdir -p ${NO_VNC_HOME}/utils/websockify \
     "</html>" \
     > ${NO_VNC_HOME}/index.html
 
-FROM stage-xfce as stage-final
+FROM stage-xfce as stage-craft
+
+COPY --from=stage-build ${OWNBUILD_DIR}/${CLIENT_BRANCH}/${CLIENT_BUILD_TARGET} ${OWNBUILD_DIR}/${CLIENT_BRANCH}/${CLIENT_BUILD_TARGET}
+ENV CMAKE_PREFIX_PATH=${OWNBUILD_DIR}/${CLIENT_BRANCH}/${CLIENT_BUILD_TARGET}
+ENV PATH=${OWNBUILD_DIR}/${CLIENT_BRANCH}/${CLIENT_BUILD_TARGET}/dev-utils/bin:$PATH
+
+FROM stage-craft as stage-final
 
 # for squish download
 ARG S3SECRET
 ARG SQUISHVERSION
 
 ### download squish
-# RUN wget https://dl.min.io/client/mc/release/linux-amd64/mc -O /opt/mc && \
-#     chmod +x /opt/mc && \
-#     /opt/mc alias set minio https://minio.owncloud.com packages ${S3SECRET} && \
-#     /opt/mc cp --no-color minio/packages/squish/squish-${SQUISHVERSION}.run /opt/squish.run
-COPY ["./tmp/squish-7.1.1-qt64x-linux64.run", "/opt/squish.run"]
+RUN curl https://dl.min.io/client/mc/release/linux-amd64/mc -so /opt/mc && \
+    chmod +x /opt/mc && \
+    /opt/mc alias set minio https://minio.owncloud.com packages ${S3SECRET} && \
+    /opt/mc cp --no-color minio/packages/squish/squish-${SQUISHVERSION}.run /opt/squish.run && \
+    chmod +x /opt/squish.run
 
 ### Arguments can be provided during build
 ARG ARG_HOME
@@ -195,8 +213,7 @@ RUN \
     "${STARTUPDIR}/generate_container_user.sh" \
     "${STARTUPDIR}/vnc_startup.sh" \
     "${STARTUPDIR}/entrypoint.sh" \
-    "${STARTUPDIR}/gnome-keyring" \
-    "/opt/squish.run"
+    "${STARTUPDIR}/gnome-keyring"
 
 RUN ${ARG_SUPPORT_USER_GROUP_OVERRIDE/*/chmod a+w /etc/passwd /etc/group} \
     && gtk-update-icon-cache -f /usr/share/icons/* \
