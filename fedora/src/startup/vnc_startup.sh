@@ -5,7 +5,7 @@ set -e
 
 ## print out help
 help() {
-echo "
+    echo "
 USAGE:
 docker run <run-options> accetto/<image>:<tag> <option> <optional-command>
 
@@ -32,7 +32,7 @@ Fore more information see: https://github.com/accetto/xubuntu-vnc-novnc
 }
 
 ### correct forwarding of shutdown signal
-cleanup () {
+cleanup() {
     kill -s SIGTERM $!
     exit 0
 }
@@ -61,12 +61,8 @@ fi
 ### resolve_vnc_connection
 VNC_IP=$(hostname -i)
 
-### report the user in any case
-echo "Script: $0"
-id
-
 ### only in debug mode
-if [[ ${DEBUG} ]] ; then
+if [[ ${DEBUG} ]]; then
     echo "DEBUG: ls -la /"
     ls -la /
     echo "DEBUG: ls -la /home"
@@ -85,21 +81,21 @@ PASSWD_PATH="${HOME}/.vnc/passwd"
 if [[ "${VNC_VIEW_ONLY}" == "true" ]]; then
     echo "Start VNC server in view only mode"
     ### create random pw to prevent access
-    echo $(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 20) | vncpasswd -f > "${PASSWD_PATH}"
+    echo $(head /dev/urandom | tr -dc A-Za-z0-9 | head -c 20) | vncpasswd -f >"${PASSWD_PATH}"
 fi
 
-echo "${VNC_PW}" | vncpasswd -f >> "${PASSWD_PATH}"
+echo "${VNC_PW}" | vncpasswd -f >>"${PASSWD_PATH}"
 chmod 600 "${PASSWD_PATH}"
 
 XSTARTUP_FILE="${HOME}/.vnc/xstartup"
-if [[ ! -f "${XSTARTUP_FILE}" ]] ; then
-    echo ; echo "Preparing VNC server configuration files ..."
-    vncserver "${DISPLAY}"
-    vncserver -kill "${DISPLAY}"
-    echo "Saving default startup script as ${XSTARTUP_FILE}.old"
+if [[ ! -f "${XSTARTUP_FILE}" ]]; then
+    # Prepare VNC server configuration files
+    vncserver "${DISPLAY}" 2>/dev/null
+    vncserver -kill "${DISPLAY}" 2>/dev/null
+    # Save default startup script as ${XSTARTUP_FILE}.old
     cp "${XSTARTUP_FILE}" "${XSTARTUP_FILE}.old"
-    echo "Replacing default startup script ${XSTARTUP_FILE}"
-    cat <<'EOF' > "${XSTARTUP_FILE}"
+    # Replace default startup script ${XSTARTUP_FILE}
+    cat <<'EOF' >"${XSTARTUP_FILE}"
 #!/bin/sh
 unset SESSION_MANAGER
 unset DBUS_SESSION_BUS_ADDRESS
@@ -108,25 +104,20 @@ dbus-launch --exit-with-session startxfce4 &
 EOF
 fi
 
-### start noVNC in the background
-echo "Starting noVNC"
-"${NO_VNC_HOME}"/utils/launch.sh --vnc localhost:${VNC_PORT} --listen ${NO_VNC_PORT} &> "${STARTUPDIR}"/no_vnc_startup.log &
+### Start noVNC in the background
+"${NO_VNC_HOME}"/utils/launch.sh --vnc localhost:${VNC_PORT} --listen ${NO_VNC_PORT} &>"${STARTUPDIR}"/no_vnc_startup.log &
 PID_SUB=$!
 
-echo "Starting VNC server ..."
-echo "... remove old VNC locks to be a reattachable container"
-vncserver -kill "${DISPLAY}" &> "${STARTUPDIR}/vnc_startup.log" \
-    || rm -rfv /tmp/.X*-lock /tmp/.X11-unix &> "${STARTUPDIR}/vnc_startup.log" \
-    || echo "... no locks present"
+# Remove old VNC locks to be a reattachable container
+vncserver -kill "${DISPLAY}" &>"${STARTUPDIR}/vnc_startup.log" ||
+    rm -rfv /tmp/.X*-lock /tmp/.X11-unix &>"${STARTUPDIR}/vnc_startup.log"
 
-echo "... VNC params: VNC_COL_DEPTH=${VNC_COL_DEPTH}, VNC_RESOLUTION=${VNC_RESOLUTION}"
-echo "... VNC params: VNC_BLACKLIST_TIMEOUT=${VNC_BLACKLIST_TIMEOUT}, VNC_BLACKLIST_THRESHOLD=${VNC_BLACKLIST_THRESHOLD}"
+# Start VNC server
 vncserver "${DISPLAY}" -depth "${VNC_COL_DEPTH}" -geometry "${VNC_RESOLUTION}" \
     -BlacklistTimeout "${VNC_BLACKLIST_TIMEOUT}" \
-    -BlacklistThreshold "${VNC_BLACKLIST_THRESHOLD}" &> "${STARTUPDIR}/vnc_startup.log"
+    -BlacklistThreshold "${VNC_BLACKLIST_THRESHOLD}" &>"${STARTUPDIR}/vnc_startup.log"
 
 ### log connect options
-echo "... VNC server started on display ${DISPLAY}"
 echo "Connect via VNC viewer with ${VNC_IP}:${VNC_PORT}"
 echo "Connect via noVNC with http://${VNC_IP}:${NO_VNC_PORT}"
 
