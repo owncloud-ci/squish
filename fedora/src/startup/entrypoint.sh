@@ -17,7 +17,7 @@ while [[ $result -ne 0 ]]; do
     exit 1
   fi
 
-  /opt/squish.run unattended=1 ide=0 targetdir="${HOME}"/squish licensekey="$LICENSEKEY" >/dev/null 2>&1
+  /opt/squish.run unattended=1 ide=0 targetdir="${HOME}"/squish licensekey="$LICENSEKEY" >>"${HOME}/squish-installation.log" 2>&1
   result=$?
 
   if [[ $result -ne 0 ]]; then
@@ -50,10 +50,10 @@ while true; do
     exit 1
   fi
 
-  ~/squish/bin/squishrunner ${SQUISH_PARAMETERS} --exitCodeOnFail 1
+  ~/squish/bin/squishrunner ${SQUISH_PARAMETERS} --reportgen stdout --exitCodeOnFail 1
   result=$?
   if [[ $result -eq $LICENSE_ERROR_RESULT_CODE ]]; then
-    echo "[SQUISH] bWaiting for license server"
+    echo "[SQUISH] Waiting for license server"
     sleep $((1 + $RANDOM % 30))
   else
     exit $result
