@@ -1,10 +1,10 @@
 ARG BASE=fedora
 ARG BASETAG=39
 
+FROM ${BASE}:${BASETAG} AS stage-build
+
 ARG ARG_CLIENT_BRANCH
 ARG ARG_CLIENT_BUILD_TARGET
-
-FROM ${BASE}:${BASETAG} as stage-build
 
 ENV OWNBUILD_DIR=/ownbuild
 ENV CLIENT_BRANCH=${ARG_CLIENT_BRANCH:-master}
@@ -44,7 +44,10 @@ RUN mkdir -p ${OWNBUILD_DIR} && \
     find ./ -name doc | xargs rm -rf && \
     find ./ -name man | xargs rm -rf
 
-FROM ${BASE}:${BASETAG} as stage-fedora
+FROM ${BASE}:${BASETAG} AS stage-fedora
+
+ARG ARG_CLIENT_BRANCH
+ARG ARG_CLIENT_BUILD_TARGET
 
 LABEL maintainer="https://github.com/owncloud-ci"
 LABEL vendor="ownCloud GmbH"
@@ -54,9 +57,9 @@ LABEL description="minimal Fedora with xfce4, VNC & squish to run GUI tests of t
     It's not intended for public use but purely for CI runs."
 
 ENV TZ=Europe/Berlin
-ENV LANG C.UTF-8
-ENV LANGUAGE en_US:en
-ENV LC_ALL C.UTF-8
+ENV LANG=C.UTF-8
+ENV LANGUAGE=en_US:en
+ENV LC_ALL=C.UTF-8
 
 ENV FONTCONFIG_PATH=/etc/fonts
 ENV OWNBUILD_DIR=/ownbuild
@@ -91,7 +94,7 @@ RUN curl https://dl.fedoraproject.org/pub/fedora/linux/releases/39/Everything/x8
     rm ./python3.10.13.rpm && \
     python3.10 -m ensurepip
 
-FROM stage-fedora as stage-xfce
+FROM stage-fedora AS stage-xfce
 
 RUN dnf install -y --setopt=install_weak_deps=False \
     libxkbcommon-x11-devel \
@@ -146,13 +149,13 @@ RUN mkdir -p ${NO_VNC_HOME}/utils/websockify \
     "</html>" \
     > ${NO_VNC_HOME}/index.html
 
-FROM stage-xfce as stage-craft
+FROM stage-xfce AS stage-craft
 
 COPY --from=stage-build ${OWNBUILD_DIR}/${CLIENT_BRANCH}/${CLIENT_BUILD_TARGET} ${OWNBUILD_DIR}/${CLIENT_BRANCH}/${CLIENT_BUILD_TARGET}
 ENV CMAKE_PREFIX_PATH=${OWNBUILD_DIR}/${CLIENT_BRANCH}/${CLIENT_BUILD_TARGET}
 ENV PATH=${OWNBUILD_DIR}/${CLIENT_BRANCH}/${CLIENT_BUILD_TARGET}/dev-utils/bin:$PATH
 
-FROM stage-craft as stage-final
+FROM stage-craft AS stage-final
 
 # for squish download
 ARG S3SECRET
