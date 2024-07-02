@@ -59,5 +59,3 @@ while true; do
     exit $result
   fi
 done
-
-tail -f /dev/null
