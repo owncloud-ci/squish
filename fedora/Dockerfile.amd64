@@ -32,17 +32,18 @@ RUN mkdir -p ${OWNBUILD_DIR} && \
     --target ${CLIENT_BUILD_TARGET} \
     -- \
     --options "libs/llvm.ignored=True" \
+    --options "libs/python.ignored=True" \
+    --options "dev-utils/python3.ignored=True" \
+    --options "dev-utils/perl.ignored=True" \
+    --options "python-modules.ignored=True" \
     --install-deps owncloud-client && \
     # remove unnecessary files
     cd ${OWNBUILD_DIR}/${CLIENT_BRANCH}/${CLIENT_BUILD_TARGET} && \
-    mv ./lib/gettext/hostname ./dev-utils/bin/hostname && \
-    rm -rf build home logs craft translations && \
-    rm -rf ./lib/libpython* ./lib/gettext ./lib/perl* ./lib/python3* && \
-    rm -rf ./dev-utils/**/7z* ./dev-utils/bin/python* && \
-    rm -rf ./bin/python* ./include/python* && \
-    rm -rf ./etc/virtualenv && \
-    find ./ -name doc | xargs rm -rf && \
-    find ./ -name man | xargs rm -rf
+    mv lib/gettext/hostname dev-utils/bin/hostname && \
+    rm -rf build home logs craft translations lib/gettext && \
+    find ./ -name 7z* | xargs rm -rf && \
+    find ./ -name *doc | xargs rm -rf && \
+    find ./ -name *man | xargs rm -rf
 
 FROM ${BASE}:${BASETAG} AS stage-fedora
 
