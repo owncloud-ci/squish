@@ -1,10 +1,54 @@
 ARG BASE=fedora
 ARG BASETAG=39
 
+FROM ${BASE}:${BASETAG} AS stage-build
+
 ARG ARG_CLIENT_BRANCH
 ARG ARG_CLIENT_BUILD_TARGET
 
-FROM ${BASE}:${BASETAG} as stage-fedora
+ENV OWNBUILD_DIR=/ownbuild
+ENV CLIENT_BRANCH=${ARG_CLIENT_BRANCH:-master}
+ENV CLIENT_BUILD_TARGET=${ARG_CLIENT_BUILD_TARGET:-linux-gcc-x86_64-squish}
+
+RUN dnf install -y \
+    git-core \
+    cmake \
+    ninja-build \
+    libEGL-devel \
+    gcc \
+    gcc-c++ \
+    libxkbcommon-devel \
+    libxkbcommon-x11-devel \
+    xcb-util*
+
+RUN curl https://dl.fedoraproject.org/pub/fedora/linux/releases/39/Everything/x86_64/os/Packages/p/python3.10-3.10.13-1.fc39.x86_64.rpm \
+    -so python3.10.13.rpm && \
+    dnf install -y ./python3.10.13.rpm
+
+RUN mkdir -p ${OWNBUILD_DIR} && \
+    curl https://raw.githubusercontent.com/owncloud/ownbuild/master/ownbuild.py -so ${OWNBUILD_DIR}/ownbuild.py && \
+    python3.10 ${OWNBUILD_DIR}/ownbuild.py \
+    --branch ${CLIENT_BRANCH} \
+    --target ${CLIENT_BUILD_TARGET} \
+    -- \
+    --options "libs/llvm.ignored=True" \
+    --options "libs/python.ignored=True" \
+    --options "dev-utils/python3.ignored=True" \
+    --options "dev-utils/perl.ignored=True" \
+    --options "python-modules.ignored=True" \
+    --install-deps owncloud-client && \
+    # remove unnecessary files
+    cd ${OWNBUILD_DIR}/${CLIENT_BRANCH}/${CLIENT_BUILD_TARGET} && \
+    mv lib/gettext/hostname dev-utils/bin/hostname && \
+    rm -rf build home logs craft translations lib/gettext && \
+    find ./ -name 7z* | xargs rm -rf && \
+    find ./ -name *doc | xargs rm -rf && \
+    find ./ -name *man | xargs rm -rf
+
+FROM ${BASE}:${BASETAG} AS stage-fedora
+
+ARG ARG_CLIENT_BRANCH
+ARG ARG_CLIENT_BUILD_TARGET
 
 LABEL maintainer="https://github.com/owncloud-ci"
 LABEL vendor="ownCloud GmbH"
@@ -14,84 +58,49 @@ LABEL description="minimal Fedora with xfce4, VNC & squish to run GUI tests of t
     It's not intended for public use but purely for CI runs."
 
 ENV TZ=Europe/Berlin
-ENV TERM xterm
-ENV LANG C.UTF-8
-ENV LANGUAGE en_US:en
-ENV LC_ALL C.UTF-8
+ENV LANG=C.UTF-8
+ENV LANGUAGE=en_US:en
+ENV LC_ALL=C.UTF-8
 
 ENV FONTCONFIG_PATH=/etc/fonts
 ENV OWNBUILD_DIR=/ownbuild
 ENV CLIENT_BRANCH=${ARG_CLIENT_BRANCH:-master}
 ENV CLIENT_BUILD_TARGET=${ARG_CLIENT_BUILD_TARGET:-linux-gcc-x86_64-squish}
 
-RUN yum install -y \
-    wget \
-    git-core \
-    ffmpeg-free \
-    hostname \
-    # to build python3
-    openssl-devel \
-    cairo-devel \
+RUN dnf install -y --setopt=install_weak_deps=False \
+    # to build client
+    libEGL-devel \
+    gcc-c++ \
+    # for python3 modules
     gobject-introspection-devel \
     cairo-gobject-devel \
-    sqlite-devel \
     # used in GUI test code
     gdb \
     gnome-keyring \
     nautilus-python \
-    procps-ng \
     nodejs \
-    && npm install --silent -g pnpm \
+    pnpm \
     # cleanup
-    && yum autoremove -y \
-    && yum clean all
+    && dnf autoremove -y \
+    && dnf clean all \
+    && dnf clean dbcache
 
-### install Python 3.10 including needed modules
-RUN mkdir /python && \
-    cd /python && \
-    wget -O-  https://www.python.org/ftp/python/3.10.12/Python-3.10.12.tgz | tar xz --strip 1 -C . && \
-    ./configure --enable-optimizations --enable-shared --prefix=/usr/local LDFLAGS="-Wl,-rpath /usr/local/lib" && \
-    make && \
-    sudo make install && \
-    cp /python/libpython* /usr/lib && \
-    python3.10 -m pip install requests && \
-    python3.10 -m pip install pycairo && \
-    python3.10 -m pip install PyGObject && \
-    rm -rf /python
+### install Python 3.10
+RUN curl https://dl.fedoraproject.org/pub/fedora/linux/releases/39/Everything/x86_64/os/Packages/p/python3.10-3.10.13-1.fc39.x86_64.rpm \
+    -so python3.10.13.rpm && \
+    dnf install -y ./python3.10.13.rpm python3.10-devel && \
+    dnf autoremove -y && \
+    dnf clean all && \
+    dnf clean dbcache && \
+    rm ./python3.10.13.rpm && \
+    python3.10 -m ensurepip
 
-FROM stage-fedora as stage-craft
+FROM stage-fedora AS stage-xfce
 
-RUN yum install -y \
-    cmake \
-    ninja-build \
-    libEGL-devel \
-    gcc \
-    gcc-c++ \
-    libxkbcommon-devel \
+RUN dnf install -y --setopt=install_weak_deps=False \
     libxkbcommon-x11-devel \
     xcb-util* \
-    # cleanup
-    && yum autoremove -y \
-    && yum clean all
-
-RUN mkdir -p ${OWNBUILD_DIR} && \
-    wget https://raw.githubusercontent.com/owncloud/ownbuild/master/ownbuild.py -O ${OWNBUILD_DIR}/ownbuild.py && \
-    python3.10 ${OWNBUILD_DIR}/ownbuild.py \
-    --branch ${CLIENT_BRANCH} \
-    --target ${CLIENT_BUILD_TARGET} \
-    -- \
-    --install-deps owncloud-client && \
-    rm -rf ${OWNBUILD_DIR}/craftmast && \
-    rm -rf ${OWNBUILD_DIR}/${CLIENT_BRANCH}/blueprints && \
-    rm -rf ${OWNBUILD_DIR}/${CLIENT_BRANCH}/downloads && \
-    rm -rf ${OWNBUILD_DIR}/${CLIENT_BRANCH}/logs
-
-ENV CMAKE_PREFIX_PATH=${OWNBUILD_DIR}/${CLIENT_BRANCH}/${CLIENT_BUILD_TARGET}
-
-FROM stage-craft as stage-xfce
-
-RUN yum remove -y systemd-standalone-tmpfiles
-RUN yum install -y \
+    alsa-lib \
     tumbler \
     Thunar \
     xfce4-appfinder \
@@ -107,18 +116,14 @@ RUN yum install -y \
     xorg-x11-xauth \
     langpacks-en \
     xterm \
-    # cleanup
-    && yum autoremove -y \
-    && yum clean all
-
-FROM stage-xfce as stage-vnc
-
-RUN yum install -y \
+    # vnc server
     tigervnc-server \
     # used for websockify/novnc
     python3-numpy \
-    && yum autoremove -y \
-    && yum clean all
+    # cleanup
+    && dnf autoremove -y \
+    && dnf clean all \
+    && dnf clean dbcache
 
 ### same parent path as VNC
 ENV NO_VNC_HOME=/usr/share/usr/local/share/noVNCdim
@@ -127,8 +132,8 @@ ENV NO_VNC_HOME=/usr/share/usr/local/share/noVNCdim
 ### see https://github.com/ConSol/docker-headless-vnc-container/issues/50
 ### installed into '/usr/share/usr/local/share/noVNCdim'
 RUN mkdir -p ${NO_VNC_HOME}/utils/websockify \
-    && wget -qO- https://github.com/novnc/noVNC/archive/v1.2.0.tar.gz | tar xz --strip 1 -C ${NO_VNC_HOME} \
-    && wget -qO- https://github.com/novnc/websockify/archive/v0.9.0.tar.gz | tar xz --strip 1 -C ${NO_VNC_HOME}/utils/websockify \
+    && curl -sL https://github.com/novnc/noVNC/archive/v1.2.0.tar.gz | tar xz --strip 1 -C ${NO_VNC_HOME} \
+    && curl -sL https://github.com/novnc/websockify/archive/v0.9.0.tar.gz | tar xz --strip 1 -C ${NO_VNC_HOME}/utils/websockify \
     && chmod +x -v ${NO_VNC_HOME}/utils/*.sh \
     ### add 'index.html' for choosing noVNC client
     && echo \
@@ -145,17 +150,24 @@ RUN mkdir -p ${NO_VNC_HOME}/utils/websockify \
     "</html>" \
     > ${NO_VNC_HOME}/index.html
 
-FROM stage-vnc as stage-final
+FROM stage-xfce AS stage-craft
+
+COPY --from=stage-build ${OWNBUILD_DIR}/${CLIENT_BRANCH}/${CLIENT_BUILD_TARGET} ${OWNBUILD_DIR}/${CLIENT_BRANCH}/${CLIENT_BUILD_TARGET}
+ENV CMAKE_PREFIX_PATH=${OWNBUILD_DIR}/${CLIENT_BRANCH}/${CLIENT_BUILD_TARGET}
+ENV PATH=${OWNBUILD_DIR}/${CLIENT_BRANCH}/${CLIENT_BUILD_TARGET}/dev-utils/bin:$PATH
+
+FROM stage-craft AS stage-final
 
 # for squish download
 ARG S3SECRET
 ARG SQUISHVERSION
 
 ### download squish
-RUN wget https://dl.min.io/client/mc/release/linux-amd64/mc -O /opt/mc && \
+RUN curl https://dl.min.io/client/mc/release/linux-amd64/mc -so /opt/mc && \
     chmod +x /opt/mc && \
     /opt/mc alias set minio https://minio.owncloud.com packages ${S3SECRET} && \
-    /opt/mc cp --no-color minio/packages/squish/squish-${SQUISHVERSION}.run /opt/squish.run
+    /opt/mc cp --no-color minio/packages/squish/squish-${SQUISHVERSION}.run /opt/squish.run && \
+    chmod +x /opt/squish.run
 
 ### Arguments can be provided during build
 ARG ARG_HOME
@@ -182,6 +194,7 @@ ENV \
 ### Creates home folder
 WORKDIR ${HOME}
 SHELL ["/bin/bash", "-c"]
+ENV PATH=$PATH:${HOME}/.local/bin
 
 COPY [ "./src/startup", "${STARTUPDIR}/" ]
 
@@ -196,20 +209,20 @@ COPY [ "./src/home/config/autostart", "${HOME}/.config/autostart/" ]
 ### writable for all users, adding support for user group override (like 'run --user x:y').
 RUN \
     chmod 664 /etc/passwd /etc/group \
-    && echo "headless:x:1001:0:Default:${HOME}:/bin/bash" >> /etc/passwd \
+    && echo "headless:x:1001:headless" >> /etc/group \
+    && echo "headless:x:1001:1001:Default:${HOME}:/bin/bash" >> /etc/passwd \
     && echo "headless:$VNC_PW" | chpasswd \
     && chmod +x \
     "${STARTUPDIR}/set_user_permissions.sh" \
     "${STARTUPDIR}/generate_container_user.sh" \
     "${STARTUPDIR}/vnc_startup.sh" \
     "${STARTUPDIR}/entrypoint.sh" \
-    "${STARTUPDIR}/gnome-keyring" \
-    "/opt/squish.run" \
-    && ${ARG_SUPPORT_USER_GROUP_OVERRIDE/*/chmod a+w /etc/passwd /etc/group} \
-    && gtk-update-icon-cache -f /usr/share/icons/*
+    "${STARTUPDIR}/gnome-keyring"
 
-### Fix permissions
-RUN "${STARTUPDIR}"/set_user_permissions.sh "${STARTUPDIR}" "${HOME}"
+RUN ${ARG_SUPPORT_USER_GROUP_OVERRIDE/*/chmod a+w /etc/passwd /etc/group} \
+    && gtk-update-icon-cache -f /usr/share/icons/* \
+    ### Fix permissions
+    && "${STARTUPDIR}"/set_user_permissions.sh "${STARTUPDIR}" "${HOME}"
 
 EXPOSE ${VNC_PORT} ${NO_VNC_PORT}
 
