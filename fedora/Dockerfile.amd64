@@ -216,8 +216,7 @@ RUN \
     "${STARTUPDIR}/set_user_permissions.sh" \
     "${STARTUPDIR}/generate_container_user.sh" \
     "${STARTUPDIR}/vnc_startup.sh" \
-    "${STARTUPDIR}/entrypoint.sh" \
-    "${STARTUPDIR}/gnome-keyring"
+    "${STARTUPDIR}/entrypoint.sh"
 
 RUN ${ARG_SUPPORT_USER_GROUP_OVERRIDE/*/chmod a+w /etc/passwd /etc/group} \
     && gtk-update-icon-cache -f /usr/share/icons/* \

@@ -100,7 +100,13 @@ if [[ ! -f "${XSTARTUP_FILE}" ]]; then
 unset SESSION_MANAGER
 unset DBUS_SESSION_BUS_ADDRESS
 
-dbus-launch --exit-with-session startxfce4 &
+eval $(dbus-launch --sh-syntax --exit-with-session)
+
+gnome-keyring-daemon --start --components=pkcs11,secrets,ssh
+echo -n "${VNC_PW}" | gnome-keyring-daemon -r --unlock
+gnome-keyring-daemon -d --login
+
+startxfce4 &
 EOF
 fi
 
