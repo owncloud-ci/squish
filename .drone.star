@@ -1,7 +1,6 @@
 def main(ctx):
   versions = [
     'latest',
-    'qt512',
     'fedora',
   ]
 
@@ -26,7 +25,6 @@ def main(ctx):
     'squishversion': {
         'latest': '7.1.1-qt64x-linux64',
         'fedora': '7.2.1-qt66x-linux64',
-        'qt512': '6.7-20210421-1504-qt512x-linux64',
     },
     'description': 'Squish for ownCloud CI',
     's3secret': {
