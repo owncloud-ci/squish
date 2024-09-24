@@ -106,6 +106,9 @@ gnome-keyring-daemon --start --components=pkcs11,secrets,ssh
 echo -n "${VNC_PW}" | gnome-keyring-daemon -r --unlock
 gnome-keyring-daemon -d --login
 
+# save dbus session address
+echo "export DBUS_SESSION_BUS_ADDRESS=${DBUS_SESSION_BUS_ADDRESS}" >> /tmp/dbus_env.sh
+
 startxfce4 &
 EOF
 fi
