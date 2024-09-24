@@ -40,6 +40,21 @@ export SQUISH_NO_CRASHHANDLER=1
 
 (/home/headless/squish/bin/squishserver >>"${GUI_TEST_REPORT_DIR}"/serverlog.log 2>&1) &
 
+# set DBUS_SESSION_BUS_ADDRESS for squishrunner terminal session
+DBUS_SESSION_FILE=/tmp/dbus_env.sh
+if [ -f $DBUS_SESSION_FILE ]; then
+  source $DBUS_SESSION_FILE
+else
+  timeout=10 # seconds
+  echo "[ERROR] 'DBUS_SESSION_BUS_ADDRESS' not set. Waiting for $timeout seconds..."
+  sleep $timeout
+  if [ -f $DBUS_SESSION_FILE ]; then
+    echo "[TIMEOUT] 'DBUS_SESSION_BUS_ADDRESS' still not set after $timeout seconds. Exiting..."
+    exit 1
+  fi
+  source $DBUS_SESSION_FILE
+fi
+
 # squishrunner waits itself for a license to become available, but fails with error 37 if it cannot connect to the license server
 LICENSE_ERROR_RESULT_CODE=37
 result=LICENSE_ERROR_RESULT_CODE
