@@ -2,6 +2,7 @@ def main(ctx):
   versions = [
     'latest',
     'fedora',
+    'qt67'
   ]
 
   arches = [
@@ -25,6 +26,7 @@ def main(ctx):
     'squishversion': {
         'latest': '7.1.1-qt64x-linux64',
         'fedora': '7.2.1-qt66x-linux64',
+        'qt67'  : '8.0.0-qt67x-linux64',
     },
     'description': 'Squish for ownCloud CI',
     's3secret': {
@@ -40,6 +42,9 @@ def main(ctx):
       config['path'] = 'latest'
     else:
       config['path'] = '%s' % config['version']
+
+    if version == 'qt67':
+      config['path'] = 'fedora'
 
     config['tags'] = [config['version']]
     if config['version'] == 'latest':
