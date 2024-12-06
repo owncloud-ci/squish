@@ -19,7 +19,9 @@ RUN dnf install -y \
     gcc-c++ \
     libxkbcommon-devel \
     libxkbcommon-x11-devel \
-    xcb-util*
+    xcb-util* \
+    patch \
+    libxcrypt-compat 
 
 RUN curl https://dl.fedoraproject.org/pub/fedora/linux/releases/39/Everything/x86_64/os/Packages/p/python3.10-3.10.13-1.fc39.x86_64.rpm \
     -so python3.10.13.rpm && \
