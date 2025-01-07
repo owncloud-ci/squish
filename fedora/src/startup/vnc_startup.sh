@@ -1,4 +1,7 @@
 #!/bin/bash
+
+. /dockerstartup/common.sh
+
 ### every exit != 0 fails the script
 set -e
 #set -u     # do not use
@@ -106,7 +109,7 @@ gnome-keyring-daemon --start --components=pkcs11,secrets,ssh
 echo -n "${VNC_PW}" | gnome-keyring-daemon -r --unlock
 
 # save dbus session address
-echo "export DBUS_SESSION_BUS_ADDRESS=${DBUS_SESSION_BUS_ADDRESS}" >> /tmp/dbus_env.sh
+echo "export DBUS_SESSION_BUS_ADDRESS=${DBUS_SESSION_BUS_ADDRESS}" > "${DBUS_ENV_FILE}"
 
 startxfce4 &
 EOF
