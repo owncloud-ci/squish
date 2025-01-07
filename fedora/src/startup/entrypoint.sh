@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. /dockerstartup/common.sh
+. "${STARTUPDIR}"/common.sh
 
 export USER=headless
 
@@ -8,7 +8,7 @@ function wait_for_vnc() {
   check_vnc="vncserver -list | grep ${DISPLAY} | awk '{print \$1}'"
   echo "[INFO] Waiting for vnc server..."
   # wait until dbus file is available
-  while [[ ! -f /tmp/dbus_env.sh ]]; do
+  while [[ ! -f $DBUS_ENV_FILE ]]; do
     sleep 5
   done
   # wait until vnserver has started
@@ -18,7 +18,7 @@ function wait_for_vnc() {
 }
 
 function wait_for_keyring() {
-  timeout=10
+  timeout=30
   starttime=$SECONDS
   unlock_cmd="gnome-keyring-daemon -r --unlock"
   check_cmd="busctl --user get-property org.freedesktop.secrets /org/freedesktop/secrets/collection/login org.freedesktop.Secret.Collection Locked"
@@ -32,8 +32,6 @@ function wait_for_keyring() {
     echo "[INFO] Waiting for keyring to unlock..."
 
     set -e
-    # kill previous unlock command
-    kill $(pgrep -f "$unlock_cmd")
     # try to unlock keyring again
     echo -n "${VNC_PW}" | $unlock_cmd
     sleep 1
@@ -42,14 +40,16 @@ function wait_for_keyring() {
   echo "[INFO] Keyring is ready and unlocked"
 }
 
-/dockerstartup/vnc_startup.sh &
+"${STARTUPDIR}"/vnc_startup.sh &
 
 #maximum time to wait for licenses (before installation of squish + before running tests)
 runtime="30 minute"
 endtime=$(date -ud "$runtime" +%s)
 
 result=1
+installation_report="${HOME}/squish-installation.log"
 echo "[SQUISH] Installing squish..."
+echo "[SQUISH] Installation report: ${installation_report}"
 
 # retry installing squish if there is an issue to connect the license server
 while [[ $result -ne 0 ]]; do
@@ -58,7 +58,7 @@ while [[ $result -ne 0 ]]; do
     exit 1
   fi
 
-  /opt/squish.run unattended=1 ide=0 targetdir="${HOME}"/squish licensekey="$LICENSEKEY" >>"${HOME}/squish-installation.log" 2>&1
+  /opt/squish.run unattended=1 ide=0 doc=0 examples=0 targetdir="${HOME}"/squish licensekey="$LICENSEKEY" >>"${installation_report}" 2>&1
   result=$?
 
   if [[ $result -ne 0 ]]; then
@@ -68,7 +68,7 @@ while [[ $result -ne 0 ]]; do
 done
 
 cp "${HOME}"/squish/etc/paths.ini "${HOME}"/squish/etc/paths.ini-backup
-cp /dockerstartup/paths.ini "${HOME}"/squish/etc/
+cp "${STARTUPDIR}"/paths.ini "${HOME}"/squish/etc/
 
 mkdir -p "${HOME}"/.squish/ver1/
 cp "${SERVER_INI}" "${HOME}"/.squish/ver1/server.ini
