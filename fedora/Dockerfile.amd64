@@ -87,16 +87,6 @@ RUN dnf install -y --setopt=install_weak_deps=False \
     && dnf clean all \
     && dnf clean dbcache
 
-### install Python 3.10
-RUN curl https://dl.fedoraproject.org/pub/fedora/linux/releases/39/Everything/x86_64/os/Packages/p/python3.10-3.10.13-1.fc39.x86_64.rpm \
-    -so python3.10.13.rpm && \
-    dnf install -y ./python3.10.13.rpm python3.10-devel && \
-    dnf autoremove -y && \
-    dnf clean all && \
-    dnf clean dbcache && \
-    rm ./python3.10.13.rpm && \
-    python3.10 -m ensurepip
-
 FROM stage-fedora AS stage-xfce
 
 RUN dnf install -y --setopt=install_weak_deps=False \
@@ -197,6 +187,7 @@ ENV \
 WORKDIR ${HOME}
 SHELL ["/bin/bash", "-c"]
 ENV PATH=$PATH:${HOME}/.local/bin
+ENV PATH=$PATH:${HOME}/squish/python3/bin
 
 COPY [ "./src/startup", "${STARTUPDIR}/" ]
 
