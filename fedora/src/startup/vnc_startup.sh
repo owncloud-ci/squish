@@ -1,4 +1,7 @@
 #!/bin/bash
+
+. "${STARTUPDIR}"/common.sh
+
 ### every exit != 0 fails the script
 set -e
 #set -u     # do not use
@@ -97,16 +100,19 @@ if [[ ! -f "${XSTARTUP_FILE}" ]]; then
     # Replace default startup script ${XSTARTUP_FILE}
     cat <<'EOF' >"${XSTARTUP_FILE}"
 #!/bin/sh
+
+. "${STARTUPDIR}"/common.sh
+
 unset SESSION_MANAGER
 unset DBUS_SESSION_BUS_ADDRESS
 
 eval $(dbus-launch --sh-syntax --exit-with-session)
 
-gnome-keyring-daemon --start --components=pkcs11,secrets,ssh
+gnome-keyring-daemon --start --components=secrets
 echo -n "${VNC_PW}" | gnome-keyring-daemon -r --unlock
 
 # save dbus session address
-echo "export DBUS_SESSION_BUS_ADDRESS=${DBUS_SESSION_BUS_ADDRESS}" >> /tmp/dbus_env.sh
+echo "export DBUS_SESSION_BUS_ADDRESS=${DBUS_SESSION_BUS_ADDRESS}" > "${DBUS_ENV_FILE}"
 
 startxfce4 &
 EOF
