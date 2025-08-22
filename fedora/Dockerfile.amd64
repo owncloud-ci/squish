@@ -8,7 +8,7 @@ ARG ARG_CLIENT_BUILD_TARGET
 
 ENV OWNBUILD_DIR=/ownbuild
 ENV CLIENT_BRANCH=${ARG_CLIENT_BRANCH:-master}
-ENV CLIENT_BUILD_TARGET=${ARG_CLIENT_BUILD_TARGET:-linux-gcc-x86_64-squish}
+ENV CLIENT_BUILD_TARGET=${ARG_CLIENT_BUILD_TARGET:-linux-64-gcc-debug}
 
 RUN dnf install -y \
     git-core \
@@ -28,10 +28,6 @@ RUN curl https://dl.fedoraproject.org/pub/fedora/linux/releases/42/Everything/x8
     dnf install -y ./python3.10.13.rpm
 
 RUN mkdir -p ${OWNBUILD_DIR}/${CLIENT_BRANCH} && \
-    curl https://raw.githubusercontent.com/owncloud/client/${CLIENT_BRANCH}/.craft.shelf -so ${OWNBUILD_DIR}/.craft.shelf && \
-    # remove pinned Qt libraries
-    # use what is in the cache
-    awk '/^\[libs\/qt/ {skip=1; next} /^\[/ && skip {skip=0} !skip' ${OWNBUILD_DIR}/.craft.shelf > ${OWNBUILD_DIR}/${CLIENT_BRANCH}/.craft.shelf && \
     curl https://raw.githubusercontent.com/owncloud/ownbuild/master/ownbuild.py -so ${OWNBUILD_DIR}/ownbuild.py && \
     python3.10 ${OWNBUILD_DIR}/ownbuild.py \
     --branch ${CLIENT_BRANCH} \
@@ -66,7 +62,7 @@ ENV LC_ALL=C.UTF-8
 ENV FONTCONFIG_PATH=/etc/fonts
 ENV OWNBUILD_DIR=/ownbuild
 ENV CLIENT_BRANCH=${ARG_CLIENT_BRANCH:-master}
-ENV CLIENT_BUILD_TARGET=${ARG_CLIENT_BUILD_TARGET:-linux-gcc-x86_64-squish}
+ENV CLIENT_BUILD_TARGET=${ARG_CLIENT_BUILD_TARGET:-linux-64-gcc-debug}
 
 RUN dnf install -y --setopt=install_weak_deps=False \
     procps-ng \
