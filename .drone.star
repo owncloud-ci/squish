@@ -21,7 +21,7 @@ def main(ctx):
     'arch': 'amd64',
     'repo': ctx.repo.name,
     'squishversion': {
-        'fedora': '9.1.0-qt68x-linux64',
+        'fedora': '8.1.0-qt68x-linux64',
     },
     'description': 'Squish for ownCloud CI',
     's3secret': {
