@@ -82,6 +82,17 @@ RUN dnf install -y --setopt=install_weak_deps=False \
     && dnf clean all \
     && dnf clean dbcache
 
+### install Python 3.10
+RUN curl https://dl.fedoraproject.org/pub/fedora/linux/releases/42/Everything/x86_64/os/Packages/p/python3.10-3.10.16-5.fc42.x86_64.rpm \
+    -so python3.10.13.rpm && \
+    dnf install -y ./python3.10.13.rpm python3.10-devel && \
+    ln -s /usr/bin/python3.10 /usr/bin/python && \
+    dnf autoremove -y && \
+    dnf clean all && \
+    dnf clean dbcache && \
+    rm ./python3.10.13.rpm && \
+    python3.10 -m ensurepip
+
 FROM stage-fedora AS stage-xfce
 
 RUN dnf install -y --setopt=install_weak_deps=False \
