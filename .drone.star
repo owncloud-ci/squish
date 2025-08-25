@@ -27,6 +27,9 @@ def main(ctx):
     's3secret': {
        'from_secret': 'squish_download_s3secret',
     },
+    'licensekey': {
+       'from_secret': 'squish_licensekey',
+    },
   }
 
   stages = []
@@ -178,7 +181,8 @@ def dryrun(config):
     'name': 'dryrun',
     'image': 'plugins/docker',
     'environment':{
-      'S3SECRET': config['s3secret']
+      'S3SECRET': config['s3secret'],
+      'LICENSEKEY': config['licensekey'],
     },
     'settings': {
       'dry_run': True,
@@ -190,7 +194,8 @@ def dryrun(config):
         'SQUISHVERSION=%s' % config['squishversion'][config['version']],
       ],
       'build_args_from_env': [
-        'S3SECRET'
+        'S3SECRET',
+        'LICENSEKEY',
       ],
     },
     'when': {
@@ -205,7 +210,8 @@ def publish(config):
     'name': 'publish',
     'image': 'plugins/docker',
     'environment':{
-      'S3SECRET': config['s3secret']
+      'S3SECRET': config['s3secret'],
+      'LICENSEKEY': config['licensekey'],
     },
     'settings': {
       'username': {
@@ -223,7 +229,8 @@ def publish(config):
         'SQUISHVERSION=%s' % config['squishversion'][config['version']],
       ],
       'build_args_from_env': [
-        'S3SECRET'
+        'S3SECRET',
+        'LICENSEKEY',
       ],
     },
     'when': {

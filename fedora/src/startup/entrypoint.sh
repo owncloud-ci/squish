@@ -42,30 +42,10 @@ function wait_for_keyring() {
 
 "${STARTUPDIR}"/vnc_startup.sh &
 
-#maximum time to wait for licenses (before installation of squish + before running tests)
-runtime="30 minute"
-endtime=$(date -ud "$runtime" +%s)
-
-result=1
-installation_report="${HOME}/squish-installation.log"
-echo "[SQUISH] Installing squish..."
-echo "[SQUISH] Installation report: ${installation_report}"
-
-# retry installing squish if there is an issue to connect the license server
-while [[ $result -ne 0 ]]; do
-  if [[ $(date -u +%s) -gt $endtime ]]; then
-    echo "[SQUISH] Timeout waiting for license server"
-    exit 1
-  fi
-
-  /opt/squish.run unattended=1 ide=0 doc=0 examples=0 targetdir="${HOME}"/squish licensekey="$LICENSEKEY" >>"${installation_report}" 2>&1
-  result=$?
-
-  if [[ $result -ne 0 ]]; then
-    echo "[SQUISH] Waiting for license server"
-    sleep $((1 + $RANDOM % 30))
-  fi
-done
+# install squish
+if ! install_squish;then
+  exit 1
+fi
 
 cp "${HOME}"/squish/etc/paths.ini "${HOME}"/squish/etc/paths.ini-backup
 cp "${STARTUPDIR}"/paths.ini "${HOME}"/squish/etc/
