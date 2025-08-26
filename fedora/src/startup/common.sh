@@ -2,8 +2,9 @@
 
 # DBUS_ENV_FILE is used in entrypoint.sh and vnc_startup.sh files
 DBUS_ENV_FILE=/tmp/dbus_env
-SQUISH_INSTALL_DIR="${HOME}/squish"
 SQUISH_INSTALL_LOG="${HOME}/squish-installation.log"
+
+mkdir -p "${HOME}"
 
 function install_squish() {
     echo "[SQUISH] Installing squish..."
@@ -20,5 +21,7 @@ function install_squish() {
             cat "$HOME/squish/SquishConfig.log"
         fi
         return $result
+    else
+        echo "[SQUISH] Squish installed successfully."
     fi
 }
