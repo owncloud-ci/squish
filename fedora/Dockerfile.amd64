@@ -42,6 +42,37 @@ RUN mkdir -p ${OWNBUILD_DIR}/${CLIENT_BRANCH} && \
     find ./ -name *doc | xargs rm -rf && \
     find ./ -name *man | xargs rm -rf
 
+############################################
+# Validate system and Squish Qt version    #
+############################################
+
+RUN dnf install -y \
+    fontconfig \
+    libXrender
+
+# for squish download
+ARG S3SECRET
+ARG SQUISHVERSION
+ARG LICENSEKEY
+
+ENV STARTUPDIR=/dockerstartup
+ENV LICENSEKEY=${LICENSEKEY}
+
+### download squish
+RUN curl https://dl.min.io/client/mc/release/linux-amd64/mc -so /opt/mc && \
+    chmod +x /opt/mc && \
+    /opt/mc alias set minio https://minio.owncloud.com packages ${S3SECRET} && \
+    /opt/mc cp --no-color minio/packages/squish/squish-${SQUISHVERSION}.run /opt/squish.run && \
+    chmod +x /opt/squish.run
+
+COPY ["./src/startup/common.sh", "${STARTUPDIR}/common.sh"]
+COPY ["./src/startup/validate-qt-version.sh", "${STARTUPDIR}/validate-qt-version.sh"]
+
+ENV PATH=${OWNBUILD_DIR}/${CLIENT_BRANCH}/${CLIENT_BUILD_TARGET}/bin:${OWNBUILD_DIR}/${CLIENT_BRANCH}/${CLIENT_BUILD_TARGET}/dev-utils/bin:$PATH
+
+RUN chmod +x "${STARTUPDIR}/common.sh" "${STARTUPDIR}/validate-qt-version.sh" && \
+    "${STARTUPDIR}/validate-qt-version.sh"
+
 FROM ${BASE}:${BASETAG} AS stage-fedora
 
 ARG ARG_CLIENT_BRANCH
@@ -156,16 +187,7 @@ ENV PATH=${OWNBUILD_DIR}/${CLIENT_BRANCH}/${CLIENT_BUILD_TARGET}/dev-utils/bin:$
 
 FROM stage-craft AS stage-final
 
-# for squish download
-ARG S3SECRET
-ARG SQUISHVERSION
-
-### download squish
-RUN curl https://dl.min.io/client/mc/release/linux-amd64/mc -so /opt/mc && \
-    chmod +x /opt/mc && \
-    /opt/mc alias set minio https://minio.owncloud.com packages ${S3SECRET} && \
-    /opt/mc cp --no-color minio/packages/squish/squish-${SQUISHVERSION}.run /opt/squish.run && \
-    chmod +x /opt/squish.run
+COPY --from=stage-build /opt/squish.run /opt/squish.run
 
 ### Arguments can be provided during build
 ARG ARG_HOME
