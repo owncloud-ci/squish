@@ -1,21 +1,13 @@
+"""
+This config defines the Drone CI pipelines for building and publishing Squish images for ownCloud CI.
+"""
+
+versions = {
+  # <base_image>: <base_image_tag>
+  'fedora': '42',
+}
+
 def main(ctx):
-  versions = [
-    'fedora',
-  ]
-
-  arches = [
-    'amd64',
-  ]
-
-  # image's base version
-  # For example, in latest's Dockerfile;
-  #   FROM ubuntu:22.04
-  # then,
-  #   'latest': '22.04'
-  base_img_tag = {
-    'fedora': ['fedora', '42'],
-  }
-
   config = {
     'version': 'latest',
     'arch': 'amd64',
@@ -25,7 +17,7 @@ def main(ctx):
     },
     'description': 'Squish for ownCloud CI',
     's3secret': {
-       'from_secret': 'squish_download_s3secret',
+        'from_secret': 'squish_download_s3secret',
     },
     'licensekey': {
        'from_secret': 'squish_licensekey',
@@ -33,24 +25,20 @@ def main(ctx):
   }
 
   stages = []
-  for version in versions:
+  for version, base_img_tag in versions.items():
     config['version'] = version
+    config['base_image_tag'] = base_img_tag
 
     if config['version'] == 'latest':
       config['path'] = 'latest'
     else:
-      config['path'] = '%s' % config['version']
+      config['path'] = config['version']
 
     config['tags'] = [config['version']]
-    if config['version'] == 'latest':
-      config['tags'].append('%s-%s' % (base_img_tag[config['version']][0], config['squishversion'][config['version']]))
-    else:
-      config['tags'].append('%s-%s' % (config['version'], config['squishversion'][config['version']]))
-    if config['version'] in base_img_tag:
-      config['tags'].append(
-        '%s-%s-%s' % (base_img_tag[config['version']][0], base_img_tag[config['version']][1], config['squishversion'][config['version']])
-      )
-
+    config['tags'].append('%s-%s' % (config['version'], config['squishversion'][config['version']]))
+    config['tags'].append(
+      '%s-%s-%s' % (config['version'], base_img_tag, config['squishversion'][config['version']])
+    )
 
     stages.append(docker(config))
 
@@ -192,6 +180,7 @@ def dryrun(config):
       'context': config['path'],
       'build_args': [
         'SQUISHVERSION=%s' % config['squishversion'][config['version']],
+        'BASETAG=%s' % config['base_image_tag'],
       ],
       'build_args_from_env': [
         'S3SECRET',
@@ -227,6 +216,7 @@ def publish(config):
       'pull_image': False,
       'build_args': [
         'SQUISHVERSION=%s' % config['squishversion'][config['version']],
+        'BASETAG=%s' % config['base_image_tag'],
       ],
       'build_args_from_env': [
         'S3SECRET',
