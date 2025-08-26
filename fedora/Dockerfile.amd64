@@ -1,5 +1,5 @@
 ARG BASE=fedora
-ARG BASETAG=42
+ARG BASETAG
 
 FROM ${BASE}:${BASETAG} AS stage-build
 
