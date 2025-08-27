@@ -47,11 +47,15 @@ if ! install_squish;then
   exit 1
 fi
 
-cp "${HOME}"/squish/etc/paths.ini "${HOME}"/squish/etc/paths.ini-backup
-cp "${STARTUPDIR}"/paths.ini "${HOME}"/squish/etc/
-
 mkdir -p "${HOME}"/.squish/ver1/
-cp "${SERVER_INI}" "${HOME}"/.squish/ver1/server.ini
+if [ -z "${SERVER_INI}" ]; then
+  echo "[SQUISH] SERVER_INI is not set. Tests might fail due to AUT misconfiguration."
+fi
+if [ -f "${SERVER_INI}" ]; then
+  cp "${SERVER_INI}" "${HOME}"/.squish/ver1/server.ini
+else
+  echo "[SQUISH] File ${SERVER_INI} not found. Tests might fail due to AUT misconfiguration."
+fi
 
 # Set allowed core dump size to an unlimited value, needed for backtracing
 ulimit -c unlimited
