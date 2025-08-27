@@ -23,13 +23,9 @@ RUN dnf install -y \
     patch \
     libxcrypt-compat
 
-RUN curl https://dl.fedoraproject.org/pub/fedora/linux/releases/42/Everything/x86_64/os/Packages/p/python3.10-3.10.16-5.fc42.x86_64.rpm \
-    -so python3.10.13.rpm && \
-    dnf install -y ./python3.10.13.rpm
-
 RUN mkdir -p ${OWNBUILD_DIR}/${CLIENT_BRANCH} && \
     curl https://raw.githubusercontent.com/owncloud/ownbuild/master/ownbuild.py -so ${OWNBUILD_DIR}/ownbuild.py && \
-    python3.10 ${OWNBUILD_DIR}/ownbuild.py \
+    python ${OWNBUILD_DIR}/ownbuild.py \
     --branch ${CLIENT_BRANCH} \
     --target ${CLIENT_BUILD_TARGET} \
     -- \
