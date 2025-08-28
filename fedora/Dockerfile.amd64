@@ -1,5 +1,5 @@
 ARG BASE=fedora
-ARG BASETAG
+ARG BASETAG=latest
 
 FROM ${BASE}:${BASETAG} AS stage-build
 
@@ -23,13 +23,9 @@ RUN dnf install -y \
     patch \
     libxcrypt-compat
 
-RUN curl https://dl.fedoraproject.org/pub/fedora/linux/releases/42/Everything/x86_64/os/Packages/p/python3.10-3.10.16-5.fc42.x86_64.rpm \
-    -so python3.10.13.rpm && \
-    dnf install -y ./python3.10.13.rpm
-
 RUN mkdir -p ${OWNBUILD_DIR}/${CLIENT_BRANCH} && \
     curl https://raw.githubusercontent.com/owncloud/ownbuild/master/ownbuild.py -so ${OWNBUILD_DIR}/ownbuild.py && \
-    python3.10 ${OWNBUILD_DIR}/ownbuild.py \
+    python ${OWNBUILD_DIR}/ownbuild.py \
     --branch ${CLIENT_BRANCH} \
     --target ${CLIENT_BUILD_TARGET} \
     -- \
@@ -54,8 +50,10 @@ RUN dnf install -y \
 ARG S3SECRET
 ARG SQUISHVERSION
 ARG LICENSEKEY
+ARG ARG_HOME
 
 ENV STARTUPDIR=/dockerstartup
+ENV HOME=${ARG_HOME:-/home/headless}
 ENV LICENSEKEY=${LICENSEKEY}
 
 ### download squish
@@ -69,6 +67,7 @@ COPY ["./src/startup/common.sh", "${STARTUPDIR}/common.sh"]
 COPY ["./src/startup/validate-qt-version.sh", "${STARTUPDIR}/validate-qt-version.sh"]
 
 ENV PATH=${OWNBUILD_DIR}/${CLIENT_BRANCH}/${CLIENT_BUILD_TARGET}/bin:${OWNBUILD_DIR}/${CLIENT_BRANCH}/${CLIENT_BUILD_TARGET}/dev-utils/bin:$PATH
+ENV SQUISH_INSTALL_DIR=${HOME}/squish
 
 RUN chmod +x "${STARTUPDIR}/common.sh" "${STARTUPDIR}/validate-qt-version.sh" && \
     "${STARTUPDIR}/validate-qt-version.sh"
@@ -112,17 +111,6 @@ RUN dnf install -y --setopt=install_weak_deps=False \
     && dnf autoremove -y \
     && dnf clean all \
     && dnf clean dbcache
-
-### install Python 3.10
-RUN curl https://dl.fedoraproject.org/pub/fedora/linux/releases/42/Everything/x86_64/os/Packages/p/python3.10-3.10.16-5.fc42.x86_64.rpm \
-    -so python3.10.13.rpm && \
-    dnf install -y ./python3.10.13.rpm python3.10-devel && \
-    ln -s /usr/bin/python3.10 /usr/bin/python && \
-    dnf autoremove -y && \
-    dnf clean all && \
-    dnf clean dbcache && \
-    rm ./python3.10.13.rpm && \
-    python3.10 -m ensurepip
 
 FROM stage-fedora AS stage-xfce
 
@@ -187,6 +175,7 @@ ENV PATH=${OWNBUILD_DIR}/${CLIENT_BRANCH}/${CLIENT_BUILD_TARGET}/dev-utils/bin:$
 
 FROM stage-craft AS stage-final
 
+# get squish
 COPY --from=stage-build /opt/squish.run /opt/squish.run
 
 ### Arguments can be provided during build
@@ -211,10 +200,16 @@ ENV \
     VNC_VIEW_ONLY=false \
     SUPPORT_USER_GROUP_OVERRIDE=${ARG_SUPPORT_USER_GROUP_OVERRIDE}
 
+# get python
+ENV SQUISH_INSTALL_DIR=${HOME}/squish
+ENV PATH=$PATH:${HOME}/.local/bin:${SQUISH_INSTALL_DIR}/python3/bin
+# NOTE: if upgrading to squish >=9.0, use 'python' dir instead of 'python3'
+# COPY --from=stage-build ${SQUISH_INSTALL_DIR}/python ${SQUISH_INSTALL_DIR}/python
+COPY --from=stage-build ${SQUISH_INSTALL_DIR}/python3 ${SQUISH_INSTALL_DIR}/python3
+
 ### Creates home folder
 WORKDIR ${HOME}
 SHELL ["/bin/bash", "-c"]
-ENV PATH=$PATH:${HOME}/.local/bin
 
 COPY [ "./src/startup", "${STARTUPDIR}/" ]
 

@@ -47,11 +47,15 @@ if ! install_squish;then
   exit 1
 fi
 
-cp "${HOME}"/squish/etc/paths.ini "${HOME}"/squish/etc/paths.ini-backup
-cp "${STARTUPDIR}"/paths.ini "${HOME}"/squish/etc/
-
 mkdir -p "${HOME}"/.squish/ver1/
-cp "${SERVER_INI}" "${HOME}"/.squish/ver1/server.ini
+if [ -z "${SERVER_INI}" ]; then
+  echo "[SQUISH] SERVER_INI is not set. Tests might fail due to AUT misconfiguration."
+fi
+if [ -f "${SERVER_INI}" ]; then
+  cp "${SERVER_INI}" "${HOME}"/.squish/ver1/server.ini
+else
+  echo "[SQUISH] File ${SERVER_INI} not found. Tests might fail due to AUT misconfiguration."
+fi
 
 # Set allowed core dump size to an unlimited value, needed for backtracing
 ulimit -c unlimited
@@ -78,12 +82,15 @@ fi
 # after dbus session is set, wait for keyring to unlock
 wait_for_keyring
 
+runtime="30 minute"
+endtime=$(date -ud "$runtime" +%s)
+
 # start squishserver
 (/home/headless/squish/bin/squishserver >>"${GUI_TEST_REPORT_DIR}"/serverlog.log 2>&1) &
 
 # squishrunner waits itself for a license to become available, but fails with error 37 if it cannot connect to the license server
 LICENSE_ERROR_RESULT_CODE=37
-result=LICENSE_ERROR_RESULT_CODE
+result=0
 echo "[SQUISH] Starting tests..."
 while true; do
   if [[ $(date -u +%s) -gt $endtime ]]; then
