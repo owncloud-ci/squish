@@ -42,10 +42,6 @@ RUN mkdir -p ${OWNBUILD_DIR}/${CLIENT_BRANCH} && \
 
 
 # Install ghostunnel for secured access to the squish license server
-ENV CLIENTKEY
-ENV CLIENTCERT
-ENV CACERT
-
 RUN curl https://github.com/ghostunnel/ghostunnel/releases/download/v1.8.4/ghostunnel-linux-amd64 -so /opt/ghostunnel && chmod +x /opt/ghostunnel
 RUN --mount=type=secret,id=cacert \
     sh -c 'echo "Secret: $(cat /run/secrets/cacert)" > /opt/cacert.pem'
