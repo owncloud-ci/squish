@@ -10,7 +10,7 @@ function install_squish() {
     echo "[SQUISH] Installing squish..."
     echo "[SQUISH] Installation report: ${SQUISH_INSTALL_LOG}"
 
-    /opt/squish.run unattended=1 ide=0 doc=0 examples=0 targetdir="${SQUISH_INSTALL_DIR}" licensekey="${LICENSEKEY}" >>"${SQUISH_INSTALL_LOG}" 2>&1
+    /opt/squish.run unattended=1 ide=0 doc=0 examples=0 targetdir="${SQUISH_INSTALL_DIR}" licensekey="localhost:8003" >>"${SQUISH_INSTALL_LOG}" 2>&1
     result=$?
 
     if [[ $result -ne 0 ]]; then
