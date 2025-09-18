@@ -180,6 +180,9 @@ def dryrun(config):
     'environment':{
       'S3SECRET': config['s3secret'],
       'LICENSEKEY': config['licensekey'],
+      'GHOSTUNNEL_CA_CERT': config['ghostunnel_ca_cert'],
+      'GHOSTUNNEL_CLIENT_CERT': config['ghostunnel_client_cert'],
+      'GHOSTUNNEL_CLIENT_KEY': config['ghostunnel_client_key'],
     },
     'settings': {
       'dry_run': True,
