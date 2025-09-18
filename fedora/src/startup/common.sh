@@ -23,6 +23,8 @@ function install_squish() {
         --cert /opt/client-cert.pem \
         --cacert /opt/cacert.pem &
 
+    ss -ltupn
+    cat /opt/cacert.pem
     echo "Started ghostunnel"
 
     echo "[SQUISH] Installing squish..."
