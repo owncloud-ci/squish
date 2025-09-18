@@ -191,9 +191,9 @@ def dryrun(config):
       'dockerfile': '%s/Dockerfile.%s' % (config['path'], config['arch']),
       'repo': 'owncloudci/%s' % config['repo'],
       'context': config['path'],
-        'secret': [
-            'id=ghostunnel_ca_cert,env=GHOSTUNNEL_CA_CERT'
-        ]
+      'secret': [
+          'id=ghostunnel_ca_cert,env=GHOSTUNNEL_CA_CERT'
+       ],
       'build_args': [
         'SQUISHVERSION=%s' % config['squishversion'][config['version']],
         'BASETAG=%s' % config['base_image_tag'],
