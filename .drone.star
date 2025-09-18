@@ -243,4 +243,4 @@ def publish(config):
 
 
 def steps(config):
-  return dryrun(config) + publish(config)
+  return dryrun(config)
