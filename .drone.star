@@ -197,6 +197,9 @@ def dryrun(config):
       'build_args_from_env': [
         'S3SECRET',
         'LICENSEKEY',
+        'GHOSTUNNEL_CA_CERT',
+        'GHOSTUNNEL_CLIENT_CERT',
+        'GHOSTUNNEL_CLIENT_KEY',
       ],
     },
     'when': {
