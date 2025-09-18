@@ -11,10 +11,10 @@ function install_squish() {
     # TODO nicer
     # ghostunnel stuff
 
-    echo "$GHOSTUNNEL_CLIENT_CERT" > /opt/client-cert.pem
-    echo "$GHOSTUNNEL_CLIENT_KEY" > /opt/client-key.pem
-    echo "$GHOSTUNNEL_CA_CERT" > /opt/cacert.pem
-    echo "$GHOSTUNNEL_CA_CERT"
+    echo "$CLIENTCERT" > /opt/client-cert.pem
+    echo "$CLIENTKEY" > /opt/client-key.pem
+    echo "$CACERT" > /opt/cacert.pem
+    echo "$CACERT"
     echo "$LICENSEKEY"
 
     echo "Starting ghostunnel"

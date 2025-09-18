@@ -180,9 +180,9 @@ def dryrun(config):
     'environment':{
       'S3SECRET': config['s3secret'],
       'LICENSEKEY': config['licensekey'],
-      'GHOSTUNNEL_CA_CERT': config['ghostunnel_ca_cert'],
-      'GHOSTUNNEL_CLIENT_CERT': config['ghostunnel_client_cert'],
-      'GHOSTUNNEL_CLIENT_KEY': config['ghostunnel_client_key'],
+      'CACERT': config['ghostunnel_ca_cert'],
+      'CLIENTCERT': config['ghostunnel_client_cert'],
+      'CLIENTKEY': config['ghostunnel_client_key'],
     },
     'settings': {
       'dry_run': True,
@@ -191,7 +191,7 @@ def dryrun(config):
       'dockerfile': '%s/Dockerfile.%s' % (config['path'], config['arch']),
       'repo': 'owncloudci/%s' % config['repo'],
       'context': config['path'],
-      'secret': 'id=cacert,env=GHOSTUNNEL_CA_CERT',
+      'secret': 'id=cacert,env=CACERT',
       'build_args': [
         'SQUISHVERSION=%s' % config['squishversion'][config['version']],
         'BASETAG=%s' % config['base_image_tag'],
