@@ -186,10 +186,14 @@ def dryrun(config):
     },
     'settings': {
       'dry_run': True,
+      'buildkit': True,
       'tags': config['tags'],
       'dockerfile': '%s/Dockerfile.%s' % (config['path'], config['arch']),
       'repo': 'owncloudci/%s' % config['repo'],
       'context': config['path'],
+        'secret': [
+            'id=ghostunnel_ca_cert,env=GHOSTUNNEL_CA_CERT'
+        ]
       'build_args': [
         'SQUISHVERSION=%s' % config['squishversion'][config['version']],
         'BASETAG=%s' % config['base_image_tag'],
@@ -197,9 +201,6 @@ def dryrun(config):
       'build_args_from_env': [
         'S3SECRET',
         'LICENSEKEY',
-        'GHOSTUNNEL_CA_CERT',
-        'GHOSTUNNEL_CLIENT_CERT',
-        'GHOSTUNNEL_CLIENT_KEY',
       ],
     },
     'when': {
