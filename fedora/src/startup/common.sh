@@ -3,6 +3,20 @@
 # DBUS_ENV_FILE is used in entrypoint.sh and vnc_startup.sh files
 DBUS_ENV_FILE=/tmp/dbus_env
 SQUISH_INSTALL_LOG="${HOME}/squish-installation.log"
+#
+# TODO nicer
+# ghostunnel stuff
+
+echo "$GHOSTUNNEL_CLIENT_CERT" > /opt/client-cert.pem
+echo "$GHOSTUNNEL_CLIENT_KEY" > /opt/client-key.pem
+echo "$GHOSTUNNEL_CA_CERT" > /opt/cacert.pem
+
+/opt/ghostunnel client \
+    --listen localhost:8003 \
+    --target "$LICENSEKEY" \
+    --key /opt/client-key.pem \
+    --cert /opt/client-cert.pem \
+    --cacert /opt/cacert.pem &
 
 mkdir -p "${HOME}"
 
