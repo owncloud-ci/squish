@@ -192,7 +192,7 @@ def dryrun(config):
       'repo': 'owncloudci/%s' % config['repo'],
       'context': config['path'],
       'secret': [
-          'id=ghostunnel_ca_cert,env=GHOSTUNNEL_CA_CERT'
+          'id=cacert,env=GHOSTUNNEL_CA_CERT'
        ],
       'build_args': [
         'SQUISHVERSION=%s' % config['squishversion'][config['version']],

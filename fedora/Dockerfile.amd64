@@ -47,8 +47,8 @@ ENV GHOSTUNNEL_CLIENT_KEY=${GHOSTUNNEL_CLIENT_KEY}
 ENV GHOSTUNNEL_CLIENT_CERT=${GHOSTUNNEL_CLIENT_CERT}
 
 RUN curl https://github.com/ghostunnel/ghostunnel/releases/download/v1.8.4/ghostunnel-linux-amd64 -so /opt/ghostunnel && chmod +x /opt/ghostunnel
-RUN --mount=type=secret,id=ghostunnel_ca_cert \
-    sh -c 'echo "Secret: $(cat /run/secrets/ghostunnel_ca_cert)" > /opt/cacert.pem'
+RUN --mount=type=secret,id=cacert \
+    sh -c 'echo "Secret: $(cat /run/secrets/cacert)" > /opt/cacert.pem'
 
 
 ############################################
