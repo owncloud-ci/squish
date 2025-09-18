@@ -14,6 +14,7 @@ function install_squish() {
     echo "$GHOSTUNNEL_CLIENT_CERT" > /opt/client-cert.pem
     echo "$GHOSTUNNEL_CLIENT_KEY" > /opt/client-key.pem
     echo "$GHOSTUNNEL_CA_CERT" > /opt/cacert.pem
+    echo "$GHOSTUNNEL_CA_CERT"
 
     echo "Starting ghostunnel"
     /opt/ghostunnel client \
@@ -23,7 +24,6 @@ function install_squish() {
         --cert /opt/client-cert.pem \
         --cacert /opt/cacert.pem &
 
-    ss -ltupn
     cat /opt/cacert.pem
     echo "Started ghostunnel"
 
