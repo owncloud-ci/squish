@@ -38,6 +38,17 @@ RUN mkdir -p ${OWNBUILD_DIR}/${CLIENT_BRANCH} && \
     find ./ -name *doc | xargs rm -rf && \
     find ./ -name *man | xargs rm -rf
 
+
+# Install ghostunnel for secured access to the squish license server
+ARG GHOSTUNNEL_CLIENT_CERT
+ARG GHOSTUNNEL_CLIENT_KEY
+ARG GHOSTUNNEL_CA_CERT
+ENV GHOSTUNNEL_CA_CERT=${GHOSTUNNEL_CA_CERT}
+ENV GHOSTUNNEL_CLIENT_KEY=${GHOSTUNNEL_CLIENT_KEY}
+ENV GHOSTUNNEL_CLIENT_CERT=${GHOSTUNNEL_CLIENT_CERT}
+
+RUN curl https://github.com/ghostunnel/ghostunnel/releases/download/v1.8.4/ghostunnel-linux-amd64 -so /opt/ghostunnel && chmod +x /opt/ghostunnel
+
 ############################################
 # Validate system and Squish Qt version    #
 ############################################
