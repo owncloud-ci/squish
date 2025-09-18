@@ -3,8 +3,6 @@ ARG BASETAG=latest
 
 FROM ${BASE}:${BASETAG} AS stage-build
 
-RUN --mount=type=secret,id=cacert sh -c 'ls -la /run/secrets'
-
 ARG ARG_CLIENT_BRANCH
 ARG ARG_CLIENT_BUILD_TARGET
 
@@ -44,7 +42,11 @@ RUN mkdir -p ${OWNBUILD_DIR}/${CLIENT_BRANCH} && \
 # Install ghostunnel for secured access to the squish license server
 RUN curl https://github.com/ghostunnel/ghostunnel/releases/download/v1.8.4/ghostunnel-linux-amd64 -so /opt/ghostunnel && chmod +x /opt/ghostunnel
 RUN --mount=type=secret,id=cacert \
-    sh -c 'echo "Secret: $(cat /run/secrets/cacert)" > /opt/cacert.pem'
+    sh -c 'echo $(cat /run/secrets/cacert) > /opt/cacert.pem'
+RUN --mount=type=secret,id=client-cert \
+    sh -c 'echo $(cat /run/secrets/client-cert) > /opt/client-cert.pem'
+RUN --mount=type=secret,id=client-key \
+    sh -c 'echo $(cat /run/secrets/client-key) > /opt/client-key.pem'
 
 
 ############################################

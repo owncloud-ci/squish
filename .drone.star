@@ -191,7 +191,11 @@ def dryrun(config):
       'dockerfile': '%s/Dockerfile.%s' % (config['path'], config['arch']),
       'repo': 'owncloudci/%s' % config['repo'],
       'context': config['path'],
-      'secret': 'id=cacert,env=CACERT',
+      'secret': [
+          'id=cacert,env=CACERT',
+          'id=client-cert,env=CLIENTCERT',
+          'id=client-key,env=CLIENTKEY',
+      ],
       'build_args': [
         'SQUISHVERSION=%s' % config['squishversion'][config['version']],
         'BASETAG=%s' % config['base_image_tag'],
