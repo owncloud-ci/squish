@@ -22,6 +22,15 @@ def main(ctx):
     'licensekey': {
        'from_secret': 'squish_licensekey',
     },
+    'ghostunnel_ca_cert': {
+       'from_secret': 'ghostunnel_ca_cert',
+    },
+    'ghostunnel_client_cert': {
+       'from_secret': 'ghostunnel_client_cert',
+    },
+    'ghostunnel_client_key': {
+       'from_secret': 'ghostunnel_client_key',
+    },
   }
 
   stages = []
