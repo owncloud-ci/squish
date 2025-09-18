@@ -4,20 +4,6 @@
 
 export USER=headless
 
-# TODO nicer
-# ghostunnel stuff
-
-echo "$GHOSTUNNEL_CLIENT_CERT" > /opt/client-cert.pem
-echo "$GHOSTUNNEL_CLIENT_KEY" > /opt/client-key.pem
-echo "$GHOSTUNNEL_CA_CERT" > /opt/cacert.pem
-
-/opt/ghostunnel client \
-    --listen localhost:8003 \
-    --target "$LICENSEKEY" \
-    --key /opt/client-key.pem \
-    --cert /opt/client-cert.pem \
-    --cacert /opt/cacert.pem &
-
 function wait_for_vnc() {
   check_vnc="vncserver -list | grep ${DISPLAY} | awk '{print \$1}'"
   echo "[INFO] Waiting for vnc server..."
