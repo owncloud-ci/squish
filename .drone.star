@@ -1,6 +1,6 @@
-"""
+'''
 This config defines the Drone CI pipelines for building and publishing Squish images for ownCloud CI.
-"""
+'''
 
 versions = {
   # <base_image>: <base_image_tag>
@@ -71,6 +71,14 @@ def docker(config):
       'os': 'linux',
       'arch': config['arch'],
     },
+    'volumes': [
+      {
+        'name': 'secrets',
+        'host': {
+          'path': '/tmp/drone-secrets'  # host-mounted path
+        }
+      }
+    ],
     'steps': steps(config),
     'depends_on': [],
     'trigger': {
@@ -173,16 +181,44 @@ def notification(config):
     },
   }
 
+
+def write_secrets(config):
+    return [{
+      'name': 'write-secret',
+      'image': 'alpine:3',
+      'environment': {
+        'GHOSTUNNEL_CA_CERT': config['ghostunnel_ca_cert'],
+        'GHOSTUNNEL_CLIENT_CERT': config['ghostunnel_client_cert'],
+        'GHOSTUNNEL_CLIENT_KEY': config['ghostunnel_client_key'],
+      },
+      'volumes': [
+        {
+          'name': 'secrets',
+          'path': '/secrets'
+        }
+      ],
+      'commands': [
+        'echo $GHOSTUNNEL_CA_CERT > /secrets/cacert.pem',
+        'echo $GHOSTUNNEL_CLIENT_CERT > /secrets/client-cert.pem',
+        'echo $GHOSTUNNEL_CLIENT_KEY > /secrets/client-key.pem',
+        'chmod 600 /secrets/*.pem'
+      ]
+    }]
+
+
 def dryrun(config):
   return [{
     'name': 'dryrun',
     'image': 'plugins/docker',
+    'volumes': [
+        {
+          'name': 'secrets',
+          'path': '/secrets'
+        }
+      ],
     'environment':{
       'S3SECRET': config['s3secret'],
       'LICENSEKEY': config['licensekey'],
-      'CACERT': config['ghostunnel_ca_cert'],
-      'CLIENTCERT': config['ghostunnel_client_cert'],
-      'CLIENTKEY': config['ghostunnel_client_key'],
     },
     'settings': {
       'dry_run': True,
@@ -191,11 +227,6 @@ def dryrun(config):
       'dockerfile': '%s/Dockerfile.%s' % (config['path'], config['arch']),
       'repo': 'owncloudci/%s' % config['repo'],
       'context': config['path'],
-      'secret': [
-          'id=cacert,env=CACERT',
-          'id=client-cert,env=CLIENTCERT',
-          'id=client-key,env=CLIENTKEY',
-      ],
       'build_args': [
         'SQUISHVERSION=%s' % config['squishversion'][config['version']],
         'BASETAG=%s' % config['base_image_tag'],
@@ -250,6 +281,5 @@ def publish(config):
   }]
 
 
-
 def steps(config):
-  return dryrun(config)
+  return write_secrets(config) + dryrun(config)

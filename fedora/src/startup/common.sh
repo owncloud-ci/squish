@@ -15,11 +15,11 @@ function install_squish() {
     /opt/ghostunnel client \
         --listen localhost:8003 \
         --target "$LICENSEKEY" \
-        --key /opt/client-key.pem \
-        --cert /opt/client-cert.pem \
-        --cacert /opt/cacert.pem &
+        --key /secrets/client-key.pem \
+        --cert /secrets/client-cert.pem \
+        --cacert /secrets/cacert.pem &
 
-    cat /opt/cacert.pem
+    cat /secrets/cacert.pem
     echo "Started ghostunnel"
 
     echo "[SQUISH] Installing squish..."
