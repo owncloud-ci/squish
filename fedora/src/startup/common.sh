@@ -17,7 +17,9 @@ function install_squish() {
         --target "$LICENSEKEY" \
         --key /opt/client-key \
         --cert /opt/client-cert \
-        --cacert /opt/cacert &
+        --cacert /opt/cacert
+
+    sleep 15
 
     ss -tlupn
     telnet localhost 8003
