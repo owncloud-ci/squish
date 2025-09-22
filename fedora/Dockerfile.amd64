@@ -8,7 +8,7 @@ ARG ARG_CLIENT_BUILD_TARGET
 
 ARG LICENSEKEY
 ENV LICENSEKEY=${LICENSEKEY}
-RUN echo $LICENSEKEY
+RUN --mount=type=secret,id=cacert cat /run/secrets/cacert
 
 ARG CACERT
 ENV CACERT=${CACERT}
