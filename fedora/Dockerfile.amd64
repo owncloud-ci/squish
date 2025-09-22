@@ -6,13 +6,9 @@ FROM ${BASE}:${BASETAG} AS stage-build
 ARG ARG_CLIENT_BRANCH
 ARG ARG_CLIENT_BUILD_TARGET
 
-ARG LICENSEKEY
-ENV LICENSEKEY=${LICENSEKEY}
-RUN --mount=type=secret,id=cacert cat /run/secrets/cacert
-
-ARG CACERT
-ENV CACERT=${CACERT}
-RUN echo $CACERT
+RUN --mount=type=secret,id=cacert cp /run/secrets/cacert /opt/cacert
+RUN --mount=type=secret,id=client-key cp /run/secrets/client-key /opt/client-key
+RUN --mount=type=secret,id=client-cert cp /run/secrets/client-cert /opt/client-cert
 
 ENV OWNBUILD_DIR=/ownbuild
 ENV CLIENT_BRANCH=${ARG_CLIENT_BRANCH:-master}

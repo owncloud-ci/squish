@@ -183,13 +183,15 @@ def dryrun(config):
       'S3SECRET': config['s3secret'],
       'LICENSEKEY': config['licensekey'],
       'CACERT': config['ghostunnel_ca_cert'],
+      'CLIENTKEY': config['ghostunnel_client_key'],
+      'CLIENTCERT': config['ghostunnel_client_cert'],
     },
     'settings': {
       'dry_run': True,
       'tags': config['tags'],
       'dockerfile': '%s/Dockerfile.%s' % (config['path'], config['arch']),
       'repo': 'owncloudci/%s' % config['repo'],
-      'secrets': ['id=cacert\\\\,env=CACERT'],
+      'secrets': ['id=cacert\\\\,env=CACERT', 'id=client-cert\\\\,env=CLIENTCERT', 'id=client-key\\\\,env=CLIENTKEY'],
       'context': config['path'],
       'build_args': [
         'SQUISHVERSION=%s' % config['squishversion'][config['version']],
@@ -199,6 +201,8 @@ def dryrun(config):
         'S3SECRET',
         'LICENSEKEY',
         'CACERT',
+        'CLIENTKEY',
+        'CLIENTCERT',
       ],
     },
     'when': {
