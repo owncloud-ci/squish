@@ -15,6 +15,8 @@ ENV CLIENT_BRANCH=${ARG_CLIENT_BRANCH:-master}
 ENV CLIENT_BUILD_TARGET=${ARG_CLIENT_BUILD_TARGET:-linux-64-gcc-debug}
 
 RUN dnf install -y \
+    ss \
+    telnet \
     git-core \
     cmake \
     ninja-build \
