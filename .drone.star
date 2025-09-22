@@ -182,6 +182,7 @@ def dryrun(config):
     'environment':{
       'S3SECRET': config['s3secret'],
       'LICENSEKEY': config['licensekey'],
+      'CACERT': config['ghostunnel_ca_cert'],
     },
     'settings': {
       'dry_run': True,
@@ -197,6 +198,7 @@ def dryrun(config):
       'build_args_from_env': [
         'S3SECRET',
         'LICENSEKEY',
+        'CACERT',
       ],
     },
     'when': {
