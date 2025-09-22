@@ -178,7 +178,7 @@ def notification(config):
 def dryrun(config):
   return [{
     'name': 'dryrun',
-    'image': 'plugins/docker',
+    'image': 'docker.io/owncloudci/drone-docker-buildx:4',
     'environment':{
       'S3SECRET': config['s3secret'],
       'LICENSEKEY': config['licensekey'],
@@ -186,7 +186,6 @@ def dryrun(config):
     },
     'settings': {
       'dry_run': True,
-      'buildkit': True,
       'tags': config['tags'],
       'dockerfile': '%s/Dockerfile.%s' % (config['path'], config['arch']),
       'repo': 'owncloudci/%s' % config['repo'],
