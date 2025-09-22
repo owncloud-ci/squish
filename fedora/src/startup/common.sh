@@ -19,11 +19,6 @@ function install_squish() {
         --cert /opt/client-cert \
         --cacert /opt/cacert &
 
-    sleep 15
-
-    ss -tlupn
-    telnet localhost 8003
-
     echo "[SQUISH] Installing squish..."
     echo "[SQUISH] Installation report: ${SQUISH_INSTALL_LOG}"
 
