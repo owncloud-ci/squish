@@ -71,14 +71,6 @@ def docker(config):
       'os': 'linux',
       'arch': config['arch'],
     },
-    'volumes': [
-      {
-        'name': 'secrets',
-        'host': {
-          'path': '/tmp/drone-secrets'  # host-mounted path
-        }
-      }
-    ],
     'steps': steps(config),
     'depends_on': [],
     'trigger': {
@@ -182,40 +174,11 @@ def notification(config):
   }
 
 
-def write_secrets(config):
-    return [{
-      'name': 'write-secret',
-      'image': 'alpine:3',
-      'environment': {
-        'GHOSTUNNEL_CA_CERT': config['ghostunnel_ca_cert'],
-        'GHOSTUNNEL_CLIENT_CERT': config['ghostunnel_client_cert'],
-        'GHOSTUNNEL_CLIENT_KEY': config['ghostunnel_client_key'],
-      },
-      'volumes': [
-        {
-          'name': 'secrets',
-          'path': '/secrets'
-        }
-      ],
-      'commands': [
-        'echo $GHOSTUNNEL_CA_CERT > /secrets/cacert.pem',
-        'echo $GHOSTUNNEL_CLIENT_CERT > /secrets/client-cert.pem',
-        'echo $GHOSTUNNEL_CLIENT_KEY > /secrets/client-key.pem',
-        'chmod 600 /secrets/*.pem'
-      ]
-    }]
-
 
 def dryrun(config):
   return [{
     'name': 'dryrun',
     'image': 'plugins/docker',
-    'volumes': [
-        {
-          'name': 'secrets',
-          'path': '/secrets'
-        }
-      ],
     'environment':{
       'S3SECRET': config['s3secret'],
       'LICENSEKEY': config['licensekey'],
