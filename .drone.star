@@ -20,7 +20,7 @@ def main(ctx):
         'from_secret': 'squish_download_s3secret',
     },
     'licensekey': {
-       'from_secret': 'squish_licensekey',
+       'from_secret': 'squish_licensekey_new',
     },
     'ghostunnel_ca_cert': {
        'from_secret': 'ghostunnel_ca_cert',
