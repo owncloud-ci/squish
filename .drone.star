@@ -245,4 +245,4 @@ def publish(config):
 
 
 def steps(config):
-  return write_secrets(config) + dryrun(config)
+  return dryrun(config)
