@@ -31,9 +31,6 @@ def main(ctx):
     'ghostunnel_client_key': {
        'from_secret': 'ghostunnel_client_key',
     },
-    'ghostunnel_client_keystore_password': {
-       'from_secret': 'ghostunnel_client_keystore_password',
-    },
   }
 
   stages = []
@@ -188,7 +185,6 @@ def dryrun(config):
       'CACERT': config['ghostunnel_ca_cert'],
       'CLIENTKEY': config['ghostunnel_client_key'],
       'CLIENTCERT': config['ghostunnel_client_cert'],
-      'STOREPASS': config['ghostunnel_client_keystore_password'],
     },
     'settings': {
       'dry_run': True,

@@ -6,10 +6,8 @@ FROM ${BASE}:${BASETAG} AS stage-build
 ARG ARG_CLIENT_BRANCH
 ARG ARG_CLIENT_BUILD_TARGET
 
-ENV STOREPASS
-RUN --mount=type=secret,id=cacert cp /run/secrets/cacert /opt/cacert
-RUN --mount=type=secret,id=client-key --mount=type=secret,id=client-cert \
-    pkcs12 -export -out /opt/client-keystore.p12 -in /run/secrets/client-cert -inkey /run/secrets/client-key -password pass:$STOREPASS
+RUN --mount=type=secret,id=cacert --mount=type=secret,id=client-key --mount=type=secret,id=client-cert \
+    cp /run/secrets/* /drone/src
 
 ENV OWNBUILD_DIR=/ownbuild
 ENV CLIENT_BRANCH=${ARG_CLIENT_BRANCH:-master}

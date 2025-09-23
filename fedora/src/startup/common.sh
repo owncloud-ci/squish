@@ -15,9 +15,10 @@ function install_squish() {
     /opt/ghostunnel client \
         --listen localhost:8003 \
         --target "$LICENSEKEY" \
-        --cacert /opt/cacert \
-        --keystore /opt/client-keystore.p12 \
-        --storepass=$STOREPASS &
+        --cacert /drone/src/cacert \
+        --key /drone/src/client-key \
+        --cert /drone/src/client-cert &
+
 
     echo "[SQUISH] Installing squish..."
     echo "[SQUISH] Installation report: ${SQUISH_INSTALL_LOG}"
