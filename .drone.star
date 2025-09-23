@@ -198,7 +198,7 @@ def dryrun(config):
     },
     'settings': {
       'workspace':{
-          'path": '/drone/src'
+          'path': '/drone/src',
       },
       'dry_run': True,
       'tags': config['tags'],
