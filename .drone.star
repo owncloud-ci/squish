@@ -73,9 +73,9 @@ def docker(config):
     },
     'steps': steps(config),
     'volumes': volumes(config),
-      'workspace':{
-          'path': '/drone/src',
-      },
+    'workspace':{
+      'path': '/drone/src',
+    },
     'depends_on': [],
     'trigger': {
       'ref': [
@@ -192,6 +192,10 @@ def dryrun(config):
   return [{
     'name': 'dryrun',
     'image': 'docker.io/owncloudci/drone-docker-buildx:4',
+    'volumes': {
+        'name': 'docker',
+        'path': '/workspace',
+    },
     'environment':{
       'S3SECRET': config['s3secret'],
       'LICENSEKEY': config['licensekey'],
