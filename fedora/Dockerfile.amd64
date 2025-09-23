@@ -6,6 +6,7 @@ FROM ${BASE}:${BASETAG} AS stage-build
 ARG ARG_CLIENT_BRANCH
 ARG ARG_CLIENT_BUILD_TARGET
 
+RUN ls -l /
 #RUN --mount=type=secret,id=cacert --mount=type=secret,id=client-key --mount=type=secret,id=client-cert cp /run/secrets/* /drone/src/
 RUN --mount=type=secret,id=cacert cp /run/secrets/cacert /drone/src/
 
