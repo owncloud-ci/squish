@@ -72,6 +72,7 @@ def docker(config):
       'arch': config['arch'],
     },
     'steps': steps(config),
+    'volumes': volumes(config),
     'depends_on': [],
     'trigger': {
       'ref': [
@@ -80,6 +81,15 @@ def docker(config):
       ],
     },
   }
+
+
+def volumes(config):
+    return [
+    {
+        'name': 'docker',
+        'temp': {},
+    },
+    ]
 
 def documentation(config):
   return {
