@@ -197,6 +197,9 @@ def dryrun(config):
       'CLIENTCERT': config['ghostunnel_client_cert'],
     },
     'settings': {
+      'workspace':{
+          'path": '/drone/src'
+      },
       'dry_run': True,
       'tags': config['tags'],
       'dockerfile': '%s/Dockerfile.%s' % (config['path'], config['arch']),
