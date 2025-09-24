@@ -195,7 +195,7 @@ def dryrun(config):
     'volumes': [
         {
           'name': 'docker',
-          'path': '/dockerabc'
+          'path': '/dockerabc',
         },
     ],
     'environment':{
