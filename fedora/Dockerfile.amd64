@@ -6,11 +6,17 @@ FROM ${BASE}:${BASETAG} AS stage-build
 ARG ARG_CLIENT_BRANCH
 ARG ARG_CLIENT_BUILD_TARGET
 
+RUN ls -l /
+#RUN --mount=type=secret,id=cacert --mount=type=secret,id=client-key --mount=type=secret,id=client-cert cp /run/secrets/* /drone/src/
+RUN --mount=type=secret,id=cacert cp /run/secrets/cacert /drone/src/
+
 ENV OWNBUILD_DIR=/ownbuild
 ENV CLIENT_BRANCH=${ARG_CLIENT_BRANCH:-master}
 ENV CLIENT_BUILD_TARGET=${ARG_CLIENT_BUILD_TARGET:-linux-64-gcc-debug}
 
 RUN dnf install -y \
+    ss \
+    telnet \
     git-core \
     cmake \
     ninja-build \
@@ -37,6 +43,10 @@ RUN mkdir -p ${OWNBUILD_DIR}/${CLIENT_BRANCH} && \
     find ./ -name 7z* | xargs rm -rf && \
     find ./ -name *doc | xargs rm -rf && \
     find ./ -name *man | xargs rm -rf
+
+
+# Install ghostunnel for secured access to the squish license server
+RUN curl -L https://github.com/ghostunnel/ghostunnel/releases/download/v1.8.4/ghostunnel-linux-amd64 -so /opt/ghostunnel && chmod +x /opt/ghostunnel
 
 ############################################
 # Validate system and Squish Qt version    #

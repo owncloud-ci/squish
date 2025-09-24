@@ -1,6 +1,6 @@
-"""
+'''
 This config defines the Drone CI pipelines for building and publishing Squish images for ownCloud CI.
-"""
+'''
 
 versions = {
   # <base_image>: <base_image_tag>
@@ -20,7 +20,16 @@ def main(ctx):
         'from_secret': 'squish_download_s3secret',
     },
     'licensekey': {
-       'from_secret': 'squish_licensekey',
+       'from_secret': 'squish_licensekey_new',
+    },
+    'ghostunnel_ca_cert': {
+       'from_secret': 'ghostunnel_ca_cert',
+    },
+    'ghostunnel_client_cert': {
+       'from_secret': 'ghostunnel_client_cert',
+    },
+    'ghostunnel_client_key': {
+       'from_secret': 'ghostunnel_client_key',
     },
   }
 
@@ -63,6 +72,10 @@ def docker(config):
       'arch': config['arch'],
     },
     'steps': steps(config),
+    'volumes': volumes(config),
+    'workspace':{
+      'path': '/drone/src',
+    },
     'depends_on': [],
     'trigger': {
       'ref': [
@@ -71,6 +84,15 @@ def docker(config):
       ],
     },
   }
+
+
+def volumes(config):
+    return [
+    {
+        'name': 'docker',
+        'temp': {},
+    },
+    ]
 
 def documentation(config):
   return {
@@ -164,20 +186,32 @@ def notification(config):
     },
   }
 
+
+
 def dryrun(config):
   return [{
     'name': 'dryrun',
-    'image': 'plugins/docker',
+    'image': 'docker.io/owncloudci/drone-docker-buildx:4',
     'environment':{
       'S3SECRET': config['s3secret'],
       'LICENSEKEY': config['licensekey'],
+      'CACERT': config['ghostunnel_ca_cert'],
+      'CLIENTKEY': config['ghostunnel_client_key'],
+      'CLIENTCERT': config['ghostunnel_client_cert'],
     },
     'settings': {
       'dry_run': True,
       'tags': config['tags'],
       'dockerfile': '%s/Dockerfile.%s' % (config['path'], config['arch']),
       'repo': 'owncloudci/%s' % config['repo'],
+      'secrets': ['id=cacert\\\\,env=CACERT', 'id=client-cert\\\\,env=CLIENTCERT', 'id=client-key\\\\,env=CLIENTKEY'],
       'context': config['path'],
+      'volumes': [
+            {
+              'name': 'docker',
+              'path': '/dockerabc',
+            },
+       ],
       'build_args': [
         'SQUISHVERSION=%s' % config['squishversion'][config['version']],
         'BASETAG=%s' % config['base_image_tag'],
@@ -232,6 +266,5 @@ def publish(config):
   }]
 
 
-
 def steps(config):
-  return dryrun(config) + publish(config)
+  return dryrun(config)
