@@ -192,12 +192,6 @@ def dryrun(config):
   return [{
     'name': 'dryrun',
     'image': 'docker.io/owncloudci/drone-docker-buildx:4',
-    'volumes': [
-        {
-          'name': 'docker',
-          'path': '/dockerabc',
-        },
-    ],
     'environment':{
       'S3SECRET': config['s3secret'],
       'LICENSEKEY': config['licensekey'],
@@ -212,6 +206,12 @@ def dryrun(config):
       'repo': 'owncloudci/%s' % config['repo'],
       'secrets': ['id=cacert\\\\,env=CACERT', 'id=client-cert\\\\,env=CLIENTCERT', 'id=client-key\\\\,env=CLIENTKEY'],
       'context': config['path'],
+      'volumes': [
+            {
+              'name': 'docker',
+              'path': '/dockerabc',
+            },
+       ],
       'build_args': [
         'SQUISHVERSION=%s' % config['squishversion'][config['version']],
         'BASETAG=%s' % config['base_image_tag'],
