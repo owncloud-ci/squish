@@ -192,12 +192,12 @@ def dryrun(config):
   return [{
     'name': 'dryrun',
     'image': 'docker.io/owncloudci/drone-docker-buildx:4',
-      "volumes": [
-                    {
-                        "name": "docker",
-                        "path": "/dockerabc"
-                    }
-                ],
+    'volumes': [
+        {
+          'name': 'docker',
+          'path': '/dockerabc'
+        },
+    ],
     'environment':{
       'S3SECRET': config['s3secret'],
       'LICENSEKEY': config['licensekey'],
