@@ -70,8 +70,8 @@ if [[ ${DEBUG} ]]; then
     ls -la /
     echo "DEBUG: ls -la /home"
     ls -la /home
-    echo "DEBUG: ls -la /home/headless"
-    ls -la /home/headless
+    echo "DEBUG: ls -la $HOME"
+    ls -la $HOME
     echo "DEBUG: ls -la ."
     ls -la .
 fi
