@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export SQUISH_INSTALL_DIR=${HOME}/squish
+
 . "${STARTUPDIR}"/common.sh
 
 export USER=headless
@@ -86,7 +88,7 @@ runtime="30 minute"
 endtime=$(date -ud "$runtime" +%s)
 
 # start squishserver
-(/home/headless/squish/bin/squishserver >>"${GUI_TEST_REPORT_DIR}"/serverlog.log 2>&1) &
+(${HOME}/squish/bin/squishserver >>"${GUI_TEST_REPORT_DIR}"/serverlog.log 2>&1) &
 
 # squishrunner waits itself for a license to become available, but fails with error 37 if it cannot connect to the license server
 LICENSE_ERROR_RESULT_CODE=37
@@ -98,7 +100,7 @@ while true; do
     exit 1
   fi
 
-  ~/squish/bin/squishrunner ${SQUISH_PARAMETERS} --reportgen stdout --exitCodeOnFail 1
+  ${HOME}/squish/bin/squishrunner ${SQUISH_PARAMETERS} --reportgen stdout --exitCodeOnFail 1
   result=$?
   if [[ $result -eq $LICENSE_ERROR_RESULT_CODE ]]; then
     echo "[SQUISH] Waiting for license server"
