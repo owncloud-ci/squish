@@ -8,7 +8,9 @@ ARG ARG_CLIENT_BUILD_TARGET
 
 ENV OWNBUILD_DIR=/ownbuild
 ENV CLIENT_BRANCH=${ARG_CLIENT_BRANCH:-master}
-ENV CLIENT_BUILD_TARGET=${ARG_CLIENT_BUILD_TARGET:-linux-64-gcc-debug}
+ENV CLIENT_BUILD_TARGET=${ARG_CLIENT_BUILD_TARGET:-linux-64-gcc}
+ENV CFLAGS="-std=gnu89"
+ENV CXXFLAGS="-std=gnu++98"
 
 RUN dnf install -y \
     git-core \
@@ -92,7 +94,7 @@ ENV LC_ALL=C.UTF-8
 ENV FONTCONFIG_PATH=/etc/fonts
 ENV OWNBUILD_DIR=/ownbuild
 ENV CLIENT_BRANCH=${ARG_CLIENT_BRANCH:-master}
-ENV CLIENT_BUILD_TARGET=${ARG_CLIENT_BUILD_TARGET:-linux-64-gcc-debug}
+ENV CLIENT_BUILD_TARGET=${ARG_CLIENT_BUILD_TARGET:-linux-64-gcc}
 
 RUN dnf install -y --setopt=install_weak_deps=False \
     procps-ng \
@@ -253,5 +255,8 @@ ARG ARG_VERSION_STICKER
 ENV \
     REFRESHED_AT=${ARG_REFRESHED_AT} \
     VERSION_STICKER=${ARG_VERSION_STICKER}
+
+# Enable or disable gui test run
+ENV SKIP_TEST_RUN=false
 
 ENTRYPOINT [ "/dockerstartup/entrypoint.sh" ]
