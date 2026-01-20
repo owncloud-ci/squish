@@ -84,9 +84,6 @@ fi
 # after dbus session is set, wait for keyring to unlock
 wait_for_keyring
 
-runtime="30 minute"
-endtime=$(date -ud "$runtime" +%s)
-
 # start squishserver
 (${HOME}/squish/bin/squishserver >>"${GUI_TEST_REPORT_DIR}"/serverlog.log 2>&1) &
 
