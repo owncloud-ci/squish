@@ -1,5 +1,8 @@
 #!/bin/bash
 
+runtime="30 minute"
+endtime=$(date -ud "$runtime" +%s)
+
 # squishrunner waits itself for a license to become available, but fails with error 37 if it cannot connect to the license server
 LICENSE_ERROR_RESULT_CODE=37
 result=0
