@@ -235,6 +235,7 @@ RUN \
     "${STARTUPDIR}/vnc_startup.sh" \
     "${STARTUPDIR}/common.sh" \
     "${STARTUPDIR}/entrypoint.sh" \
+    "${STARTUPDIR}/run_test.sh" \
     # prevent open url errors
     && echo -e '#!/bin/bash\nexit 0' > /usr/bin/xdg-open \
     && chmod +x /usr/bin/xdg-open
